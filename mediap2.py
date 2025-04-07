@@ -4,12 +4,14 @@ import numpy as np
 import time
 import pyautogui
 
+screen_width, screen_height = pyautogui.size()
 # Khởi tạo Mediapipe Face Mesh và Face Detection
 mp_face_mesh = mp.solutions.face_mesh
 mp_face_detection = mp.solutions.face_detection
 mp_drawing = mp.solutions.drawing_utils
 face_mesh = mp_face_mesh.FaceMesh(max_num_faces=1, refine_landmarks=True, min_detection_confidence=0.5, min_tracking_confidence=0.5)
 face_detection = mp_face_detection.FaceDetection(min_detection_confidence=0.5)
+pyautogui.FAILSAFE = False
 
 # Chỉ số iBUG 68 đối xứng
 IBUG_68_INDICES = [
@@ -114,18 +116,18 @@ def detect_smile(landmarks, h, w):
     lip_curve = calculate_point_to_line_distance(lip_center, left_corner, right_corner, w, h)
     return mouth_width > mouth_width_thres and lip_curve > lip_curve_thres
 
-def get_head_center(landmarks, detection_results, h, w):
+def get_cursor(landmarks, detection_results, w, h, screen_width, screen_height):
     # Từ Face Mesh (landmarks)
     nose = landmarks.landmark[1]  # Điểm mũi
-    mesh_x, mesh_y = nose.x * w, nose.y * h
-
+    mesh_x, mesh_y = nose.x , nose.y 
+    
     # Từ Face Detection (bounding box)
     det_x, det_y = mesh_x, mesh_y  # Giá trị mặc định nếu không có detection
     if detection_results.detections:
         for detection in detection_results.detections:
             bboxC = detection.location_data.relative_bounding_box
-            det_x = bboxC.xmin * w + bboxC.width * w / 2  # Trung tâm bounding box
-            det_y = bboxC.ymin * h + bboxC.height * h / 2
+            det_x = bboxC.xmin + bboxC.width / 2  # Trung tâm bounding box
+            det_y = bboxC.ymin + bboxC.height / 2
 
     # Kết hợp trọng số (70% landmarks, 30% detection)
     weight_mesh = 0.7
@@ -138,11 +140,13 @@ def get_head_center(landmarks, detection_results, h, w):
     if len(MOUSE_HISTORY) > HISTORY_SIZE:
         MOUSE_HISTORY.pop(0)
     smoothed_x, smoothed_y = np.mean(MOUSE_HISTORY, axis=0)
-
-    return int(smoothed_x), int(smoothed_y)
+    mouse_x = screen_width / 2 + screen_width * (smoothed_x-0.5) * 3
+    mouse_y = screen_height / 2 + screen_height * (smoothed_y-0.6) * 3
+    
+    return mouse_x, mouse_y
 
 # Chạy calibrate trước
-calibrate_smile()
+# calibrate_smile()
 
 # Mở webcam chính
 cap = cv2.VideoCapture(0)
@@ -168,6 +172,19 @@ while cap.isOpened():
     fps = 1 / (curr_time - prev_time)
     prev_time = curr_time
 
+    # if detection_results.detections:
+    #     for detection in detection_results.detections:
+    #         h, w, _ = frame.shape
+    #         # Lấy thông tin bounding box
+    #         bboxC = detection.location_data.relative_bounding_box
+    #         x_min = int(bboxC.xmin * w)
+    #         y_min = int(bboxC.ymin * h)
+    #         box_width = int(bboxC.width * w)
+    #         box_height = int(bboxC.height * h)
+
+    #         # Vẽ bounding box
+    #         cv2.rectangle(frame, (x_min, y_min), (x_min + box_width, y_min + box_height), (0, 255, 255), 2)
+
     if mesh_results.multi_face_landmarks:
         for face_landmarks in mesh_results.multi_face_landmarks:
             h, w, _ = frame.shape
@@ -179,16 +196,17 @@ while cap.isOpened():
             cv2.circle(frame, (a, b), 2, (255, 0, 0), -1)
 
             # Điều khiển chuột
-            mouse_x, mouse_y = get_head_center(face_landmarks, detection_results, h, w)
+            mouse_x, mouse_y = get_cursor(face_landmarks, detection_results, w, h, screen_width, screen_height)
             pyautogui.PAUSE = 0
-            pyautogui.moveTo(mouse_x * 3, mouse_y * 2.25)  # Điều chỉnh tỷ lệ màn hình
+            print(f"mouse_x = {mouse_x}, mouse_y = {mouse_y}")
+            pyautogui.moveTo(mouse_x, mouse_y)  # Điều chỉnh tỷ lệ màn hình
 
             # Phát hiện nụ cười và click
-            if detect_smile(face_landmarks, h, w):
-                cv2.putText(frame, "Smile Detected!", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-                if curr_time - last_click_time > 1:
-                    pyautogui.click()
-                    last_click_time = curr_time
+            # if detect_smile(face_landmarks, h, w):
+            #     cv2.putText(frame, "Smile Detected!", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            #     if curr_time - last_click_time > 1:
+            #         pyautogui.click()
+            #         last_click_time = curr_time
 
     print(f"Thời gian xử lý: {time.time() - start:.4f} giây")
     cv2.putText(frame, f"FPS: {int(fps)}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
