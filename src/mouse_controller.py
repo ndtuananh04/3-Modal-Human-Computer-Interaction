@@ -58,7 +58,7 @@ class MouseController:
                 
                 # Di chuyển chuột nếu vận tốc đủ lớn
                 if np.abs(vx) > self.minimum_movement or np.abs(vy) > self.minimum_movement:
-                    pyautogui.moveRel(-vx, vy, duration=0)
+                    pyautogui.moveRel(vx, vy, duration=0)
                 
                 # Lưu vị trí hiện tại và trả về vận tốc
                 self.prev_smooth_position = smooth_position

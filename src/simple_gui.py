@@ -4,7 +4,162 @@ import cv2
 import numpy as np
 import threading
 import time
+import queue
+from threading import Thread, Event
 from PIL import Image, ImageTk
+
+class CameraThread:
+    """Quản lý camera trong một thread riêng biệt, luôn hoạt động."""
+    
+    def __init__(self, frame_callback=None):
+        """Khởi tạo thread camera.
+        
+        Args:
+            frame_callback: Hàm callback khi có frame mới
+        """
+        self.lock = threading.Lock()
+        self.frame_callback = frame_callback
+        self.cap = None
+        self.is_running = False
+        self.stop_flag = Event()
+        self.camera_thread = None
+        self.current_frame = None
+        self.current_rgb_frame = None
+        self.frame_queue = queue.Queue(maxsize=10)  # Hàng đợi lưu trữ các frame gần nhất
+        
+        # Khởi động camera ngay lập tức
+        self.start()
+    
+    def start(self):
+        """Khởi động thread camera."""
+        if not self.is_running:
+            self.is_running = True
+            self.stop_flag.clear()
+            self.camera_thread = Thread(target=self.camera_loop, daemon=True)
+            self.camera_thread.start()
+    
+    def camera_loop(self):
+        """Vòng lặp chính của camera - luôn chạy."""
+        # Mở camera
+        try:
+            self.cap = cv2.VideoCapture(0)
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+            
+            if not self.cap.isOpened():
+                print("Không thể mở camera!")
+                self.is_running = False
+                return
+        except Exception as e:
+            print(f"Lỗi khởi tạo camera: {e}")
+            self.is_running = False
+            return
+        
+        failure_count = 0  # Đếm số lần đọc frame thất bại liên tiếp
+        
+        while not self.stop_flag.is_set():
+            try:
+                ret, frame = self.cap.read()
+                if not ret:
+                    failure_count += 1
+                    print(f"Lỗi đọc frame từ camera (lần {failure_count})")
+                    
+                    # Nếu lỗi quá 5 lần liên tiếp, thử khởi động lại camera
+                    if failure_count > 5:
+                        print("Thử khởi động lại camera...")
+                        self.cap.release()
+                        time.sleep(1)
+                        self.cap = cv2.VideoCapture(0)
+                        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+                        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+                        failure_count = 0
+                    
+                    time.sleep(0.1)
+                    continue
+                
+                # Reset failure count
+                failure_count = 0
+                
+                # Lật hình để dễ nhìn
+                frame = cv2.flip(frame, 1)
+                
+                # Tạo phiên bản RGB để sử dụng với mediapipe
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                
+                # Lưu frame hiện tại và thông báo qua callback
+                with self.lock:
+                    self.current_frame = frame.copy()
+                    self.current_rgb_frame = frame_rgb.copy()
+                
+                # Thêm frame vào hàng đợi cho quá trình calibration
+                try:
+                    if not self.frame_queue.full():
+                        self.frame_queue.put((frame.copy(), frame_rgb.copy()), block=False)
+                    else:
+                        # Nếu hàng đợi đầy, loại bỏ frame cũ
+                        self.frame_queue.get(block=False)
+                        self.frame_queue.put((frame.copy(), frame_rgb.copy()), block=False)
+                except:
+                    pass  # Bỏ qua nếu không thêm được vào queue
+                
+                if self.frame_callback:
+                    self.frame_callback(frame)
+                
+            except Exception as e:
+                print(f"Lỗi trong camera_loop: {e}")
+                time.sleep(0.1)
+            
+            # Đợi một chút để giảm sử dụng CPU
+            try:
+                cv2.waitKey(1)
+            except:
+                pass
+    
+    def get_frame(self):
+        """Lấy frame hiện tại từ camera."""
+        with self.lock:
+            if self.current_frame is not None:
+                return self.current_frame.copy()
+            return None
+    
+    def get_rgb_frame(self):
+        """Lấy frame RGB hiện tại từ camera (để dùng với mediapipe)."""
+        with self.lock:
+            if self.current_rgb_frame is not None:
+                return self.current_rgb_frame.copy()
+            return None
+    
+    def get_frames_for_calibration(self, count=5):
+        """Lấy nhiều frame cho calibration từ queue."""
+        frames = []
+        rgb_frames = []
+        
+        # Ưu tiên lấy từ queue trước
+        while len(frames) < count and not self.frame_queue.empty():
+            try:
+                frame, rgb_frame = self.frame_queue.get(block=False)
+                frames.append(frame)
+                rgb_frames.append(rgb_frame)
+            except:
+                break
+        
+        # Nếu không đủ frame, lấy frame hiện tại
+        if not frames and self.current_frame is not None:
+            with self.lock:
+                frames.append(self.current_frame.copy())
+                rgb_frames.append(self.current_rgb_frame.copy())
+        
+        return frames, rgb_frames
+    
+    def __del__(self):
+        """Destructor - giải phóng tài nguyên khi đối tượng bị hủy."""
+        self.stop_flag.set()
+        if hasattr(self, 'camera_thread') and self.camera_thread and self.camera_thread.is_alive():
+            self.camera_thread.join(timeout=1.0)
+        
+        if hasattr(self, 'cap') and self.cap:
+            self.cap.release()
+
 
 class SimpleNoHandsGUI:
     def __init__(self, root, face_mesh, smile_detector, mouse_controller):
@@ -19,16 +174,37 @@ class SimpleNoHandsGUI:
         self.mouse_controller = mouse_controller
         
         # Biến trạng thái
-        self.running = False
-        self.camera_active = False
-        self.camera_thread = None
+        self.tracking_active = False  # Di chuyển chuột
+        self.calibrating = False      # Đang hiệu chỉnh
         self.last_click_time = 0
+        self.ui_update_rate = 15      # ms, tương đương ~60fps cho UI
+        
+        # Biến cho việc tương tác với camera
+        self.calibration_mesh_results = None
         
         # Tạo layout đơn giản
         self.create_simple_layout()
         
         # Liên kết sự kiện đóng cửa sổ
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+        
+        # Khởi động camera trong thread riêng (luôn bật)
+        self.camera_thread = CameraThread(frame_callback=self.on_new_frame)
+        
+        # Bắt đầu cập nhật UI
+        self.update_ui()
+        
+    def on_new_frame(self, frame):
+        """Callback khi có frame mới từ camera."""
+        if self.calibrating:
+            # Nếu đang calibrate, xử lý frame tìm khuôn mặt
+            try:
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                mesh_results = self.face_mesh.process(frame_rgb)
+                if mesh_results and mesh_results.multi_face_landmarks:
+                    self.calibration_mesh_results = mesh_results
+            except Exception as e:
+                print(f"Lỗi xử lý frame trong calibration: {e}")
     
     def create_simple_layout(self):
         """Tạo layout đơn giản với 2 phần chính"""
@@ -44,26 +220,19 @@ class SimpleNoHandsGUI:
         right_frame = ttk.Frame(main_frame, width=250)
         right_frame.pack(side=tk.RIGHT, fill=tk.Y)
         
-        # Canvas hiển thị video
+        # Canvas hiển thị video - kích thước cố định
         self.canvas = tk.Canvas(left_frame, bg="black", width=640, height=480)
         self.canvas.pack(pady=10, padx=10)
         
         # Panel điều khiển đơn giản
         ttk.Label(right_frame, text="No Hands No Problem", font=("Arial", 14, "bold")).pack(pady=10)
         
-        # FPS
-        # fps_frame = ttk.Frame(status_frame)
-        # fps_frame.pack(fill=tk.X, pady=2)
-        # ttk.Label(fps_frame, text="FPS:").pack(side=tk.LEFT)
-        # self.fps_label = ttk.Label(fps_frame, text="0")
-        # self.fps_label.pack(side=tk.RIGHT)
+        # Trạng thái
+        status_frame = ttk.LabelFrame(right_frame, text="Status", padding=5)
+        status_frame.pack(fill=tk.X, pady=10)
         
-        # # Smile detection
-        # smile_frame = ttk.Frame(status_frame)
-        # smile_frame.pack(fill=tk.X, pady=2)
-        # ttk.Label(smile_frame, text="Smile:").pack(side=tk.LEFT)
-        # self.smile_label = ttk.Label(smile_frame, text="Not detected")
-        # self.smile_label.pack(side=tk.RIGHT)
+        self.status_label = ttk.Label(status_frame, text="Camera Running")
+        self.status_label.pack(fill=tk.X)
         
         # Điều chỉnh tốc độ
         ttk.Label(right_frame, text="Mouse Speed:").pack(anchor=tk.W, pady=(10, 0))
@@ -76,135 +245,188 @@ class SimpleNoHandsGUI:
         btn_frame = ttk.Frame(right_frame)
         btn_frame.pack(fill=tk.X, pady=10)
         
-        self.calibrate_btn = ttk.Button(btn_frame, text="Calibrate", command=self.calibrate)
+        self.calibrate_btn = ttk.Button(btn_frame, text="1. Calibrate Smile", command=self.calibrate)
         self.calibrate_btn.pack(fill=tk.X, pady=5)
         
-        self.start_btn = ttk.Button(btn_frame, text="Start Camera", command=self.toggle_camera)
-        self.start_btn.pack(fill=tk.X, pady=5)
+        self.tracking_btn = ttk.Button(btn_frame, text="2. Start Mouse Control", command=self.toggle_tracking, state="disabled")
+        self.tracking_btn.pack(fill=tk.X, pady=5)
         
         # Hướng dẫn đơn giản
-        help_text = "Calibrate → Start → Smile to click"
+        help_text = "Camera always on.\n1. First calibrate your smile\n2. Then start mouse control\n3. Smile to click"
         ttk.Label(right_frame, text=help_text, wraplength=200).pack(pady=10)
     
-    def toggle_camera(self):
-        """Bật/tắt camera"""
-        if self.running:
-            self.running = False
-            self.start_btn.config(text="Start Camera")
-        else:
-            self.running = True
-            self.start_btn.config(text="Stop Camera")
+    def update_ui(self):
+        """Cập nhật giao diện người dùng."""
+        # Lấy frame hiện tại từ camera
+        frame = self.camera_thread.get_frame()
+        
+        if frame is not None:
+            display_frame = frame.copy()
             
-            if self.camera_thread is None or not self.camera_thread.is_alive():
-                self.camera_thread = threading.Thread(target=self.process_camera, daemon=True)
-                self.camera_thread.start()
-    
-    def calibrate(self):
-        """Hiệu chỉnh nụ cười"""
-        if self.running:
-            self.toggle_camera()  # Dừng camera trước
+            # Xử lý khuôn mặt và mỉm cười
+            self.process_face(display_frame)
+            
+            # Chuyển đổi frame để hiển thị trên canvas
+            frame_rgb = cv2.cvtColor(display_frame, cv2.COLOR_BGR2RGB)
+            img = Image.fromarray(frame_rgb)
+            imgtk = ImageTk.PhotoImage(image=img)
+            
+            # Cập nhật canvas
+            self.canvas.create_image(0, 0, anchor=tk.NW, image=imgtk)
+            self.canvas.image = imgtk  # Giữ tham chiếu
         
-        self.calibrate_btn.config(state="disabled")
-        threading.Thread(target=self.run_calibration, daemon=True).start()
+        # Lập lịch cập nhật tiếp theo
+        self.root.after(self.ui_update_rate, self.update_ui)
     
-    def run_calibration(self):
-        """Thực hiện quá trình hiệu chỉnh trong thread riêng"""
-        success = self.smile_detector.calibrate(self.face_mesh)
-        
-        # Bật lại nút sau khi hoàn thành
-        self.root.after(0, lambda: self.calibrate_btn.config(state="normal"))
-        
-        if success:
-            messagebox.showinfo("Calibration", "Smile calibration completed!")
-        else:
-            messagebox.showerror("Error", "Calibration failed. Please try again.")
-    
-    def update_speed(self, value):
-        """Cập nhật tốc độ di chuyển chuột"""
-        self.mouse_controller.velocity_scale = float(value)
-    
-    def process_camera(self):
-        """Xử lý camera và hiển thị"""
+    def process_face(self, display_frame):
+        """Xử lý nhận diện khuôn mặt, cập nhật frame hiển thị và điều khiển chuột nếu được bật."""
         from src.face_utils import draw_landmarks, extract_landmark_positions
         
-        cap = cv2.VideoCapture(0)
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        # Lấy RGB frame cho mediapipe
+        frame_rgb = self.camera_thread.get_rgb_frame()
+        if frame_rgb is None:
+            return
         
-        last_ui_update = 0
-        ui_update_interval = 3
+        # Xử lý tìm khuôn mặt
+        mesh_results = self.face_mesh.process(frame_rgb)
         
-        while self.running:
-            ret, frame = cap.read()
-            if not ret:
-                break
-            
-            # FPS
-            # curr_time = time.time()
-            # fps = 1 / (curr_time - prev_time)
-            # prev_time = curr_time
-            
-            # Cập nhật FPS trên giao diện
-            # self.root.after(0, lambda f=fps: self.fps_label.config(text=f"{int(f)}"))
-            
-            # Xử lý frame
-            # frame = cv2.flip(frame, 1)
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            mesh_results = self.face_mesh.process(frame_rgb)
-
-            curr_time = time.time()
-            update_ui = (curr_time - last_ui_update) > ui_update_interval
-            
-            if mesh_results.multi_face_landmarks:
-                for face_landmarks in mesh_results.multi_face_landmarks:
-                    h, w, _ = frame.shape
-                    
-                    # Vẽ landmark
-                    # draw_landmarks(frame, face_landmarks)
-                    
+        if mesh_results and mesh_results.multi_face_landmarks:
+            for face_landmarks in mesh_results.multi_face_landmarks:
+                h, w, _ = display_frame.shape
+                
+                # Vẽ landmark trên khuôn mặt
+                draw_landmarks(display_frame, face_landmarks)
+                
+                # Nếu đang calibrating, xử lý dữ liệu khuôn mặt cho calibration
+                if self.calibrating:
+                    # Việc calibrate được xử lý ở phương thức khác, 
+                    # chỉ hiển thị trạng thái
+                    cv2.putText(display_frame, "Calibrating...", (10, 30), 
+                               cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+                    return
+                
+                # Nếu đang tracking, xử lý di chuyển chuột
+                if self.tracking_active:
                     # Trích xuất vị trí và di chuyển chuột
                     current_position = extract_landmark_positions(face_landmarks, w, h)
-                    vx, vy = self.mouse_controller.update(current_position)
+                    self.mouse_controller.update(current_position)
                     
-                    # Phát hiện nụ cười
+                    # Phát hiện nụ cười và click
+                    curr_time = time.time()
                     if self.smile_detector.detect(face_landmarks, h, w):
+                        cv2.putText(display_frame, "Smile Detected!", (10, 60), 
+                                   cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                        
                         if curr_time - self.last_click_time > 1:
                             self.mouse_controller.click()
                             self.last_click_time = curr_time
-            
-            if update_ui:
-                # Lật hình cho preview
-                display_frame = cv2.flip(frame, 1)
-                
-                # Thêm chỉ báo trạng thái
-                cv2.putText(display_frame, "Running", (10, 30), 
-                           cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                
-                # Cập nhật hiển thị đơn giản
-                self.update_display_simple(display_frame)
-                last_ui_update = curr_time
-        
-        cap.release()
+                    
+                    # Hiển thị trạng thái tracking
+                    cv2.putText(display_frame, "Mouse Control Active", (10, 30), 
+                               cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                else:
+                    # Nếu đã calibrate nhưng chưa bật tracking
+                    state_text = "Ready - Press 'Start Mouse Control'" if self.smile_detector.calibrated else "Please calibrate first"
+                    cv2.putText(display_frame, state_text, (10, 30), 
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+        else:
+            # Không tìm thấy khuôn mặt
+            if self.calibrating:
+                cv2.putText(display_frame, "No face detected - Keep face centered", (10, 30), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+            elif self.tracking_active:
+                cv2.putText(display_frame, "No face detected", (10, 30), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+            else:
+                cv2.putText(display_frame, "No face detected", (10, 30), 
+                           cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
     
-    def update_display_simple(self, frame):
-        """Cập nhật hiển thị frame lên canvas"""
-        if not self.running:
+    def toggle_tracking(self):
+        """Bật/tắt tính năng theo dõi khuôn mặt và điều khiển chuột."""
+        if not self.smile_detector.calibrated:
+            messagebox.showerror("Error", "Please calibrate smile detection first.")
             return
             
-        # Chuyển đổi frame sang định dạng PIL Image
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        img = Image.fromarray(frame_rgb)
-        imgtk = ImageTk.PhotoImage(image=img)
+        self.tracking_active = not self.tracking_active
         
-        self.canvas.create_image(0, 0, anchor=tk.NW, image=imgtk)
-        self.canvas.image = imgtk
+        if self.tracking_active:
+            self.tracking_btn.config(text="Stop Mouse Control")
+            self.status_label.config(text="Mouse Control Active")
+        else:
+            self.tracking_btn.config(text="Start Mouse Control")
+            self.status_label.config(text="Ready - Camera Running")
+    
+    def update_speed(self, value):
+        """Cập nhật tốc độ di chuyển chuột."""
+        self.mouse_controller.velocity_scale = float(value)
+    
+    def calibrate(self):
+        """Hiệu chỉnh nụ cười sử dụng frame hiện hành."""
+        # Tạm dừng tracking nếu đang hoạt động
+        was_tracking = self.tracking_active
+        self.tracking_active = False
+        
+        self.calibrating = True
+        self.calibration_mesh_results = None
+        self.calibrate_btn.config(state="disabled")
+        self.tracking_btn.config(state="disabled")
+        self.status_label.config(text="Calibrating Smile...")
+        
+        # Thực hiện hiệu chỉnh trong thread riêng, sử dụng frame từ camera thread
+        threading.Thread(target=lambda: self.run_calibration(was_tracking), daemon=True).start()
+    
+    def run_calibration(self, restore_tracking):
+        """Thực hiện quá trình hiệu chỉnh trong thread riêng."""
+        # Sử dụng phương thức calibrate_with_frames được tùy chỉnh thay vì gọi trực tiếp
+        success = self.calibrate_with_frames()
+        
+        # Đánh dấu rằng việc calibration đã hoàn thành
+        self.calibrating = False
+        
+        # Khôi phục UI sau khi hiệu chỉnh
+        self.root.after(0, lambda: self.calibrate_btn.config(state="normal"))
+        
+        if success:
+            self.root.after(0, lambda: self.status_label.config(text="Calibration Successful"))
+            self.root.after(0, lambda: self.tracking_btn.config(state="normal"))
+            messagebox.showinfo("Calibration", "Smile calibration completed successfully!")
+        else:
+            self.root.after(0, lambda: self.status_label.config(text="Calibration Failed"))
+            messagebox.showerror("Error", "Calibration failed. Please try again.")
+        
+        # Khôi phục trạng thái tracking nếu đã bật trước đó
+        if restore_tracking and success:
+            self.root.after(100, self.toggle_tracking)
+    
+    def calibrate_with_frames(self):
+        """Phương pháp calibrate sử dụng các frame đã có từ camera thread."""
+        # Đợi đến khi có kết quả detection
+        print("Calibrating")
+        print("Waiting for face...")
+        
+        max_wait_time = 10  # Đợi tối đa 10 giây
+        start_wait = time.time()
+        
+        # Lặp đến khi có kết quả hoặc hết thời gian chờ
+        while not self.calibration_mesh_results and time.time() - start_wait < max_wait_time:
+            time.sleep(0.1)
+        
+        if not self.calibration_mesh_results:
+            print("Không tìm thấy khuôn mặt sau thời gian chờ.")
+            return False
+        
+        print("Face detected! Starting calibration...")
+        
+        # Sử dụng kết quả detection có sẵn
+        try:
+            self.smile_detector.calibrate_with_landmarks(self.calibration_mesh_results)
+            return True
+        except Exception as e:
+            print(f"Lỗi trong quá trình calibrate: {e}")
+            return False
     
     def on_close(self):
-        """Xử lý khi đóng cửa sổ"""
-        self.running = False
-        if self.camera_thread and self.camera_thread.is_alive():
-            self.camera_thread.join(timeout=1.0)
-        
+        """Xử lý khi đóng cửa sổ."""
         self.root.destroy()
 
 # Hàm để khởi động giao diện đơn giản

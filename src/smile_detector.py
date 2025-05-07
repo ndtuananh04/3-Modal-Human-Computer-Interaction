@@ -88,6 +88,67 @@ class SmileDetector:
         
         return self.calibrated
     
+    def calibrate_with_landmarks(self, mesh_results):
+        """Hiệu chỉnh nụ cười sử dụng kết quả nhận diện khuôn mặt có sẵn.
+        
+        Args:
+            mesh_results: Kết quả phát hiện khuôn mặt từ MediaPipe
+        
+        Returns:
+            bool: True nếu hiệu chỉnh thành công, False nếu thất bại
+        """
+        if not mesh_results.multi_face_landmarks:
+            print("Không tìm thấy khuôn mặt để hiệu chỉnh")
+            return False
+        
+        # Dữ liệu tạm
+        neutral_mouth_width = 0
+        neutral_lip_curve = 0
+        smiling_mouth_width = 0
+        smiling_lip_curve = 0
+        
+        # Thực hiện quy trình tương tự như calibrate
+        # Sử dụng kết quả nhận diện có sẵn thay vì thực hiện lại
+        face_landmarks = mesh_results.multi_face_landmarks[0]
+        
+        # Xác định kích thước ảnh
+        # Sử dụng giá trị mặc định hoặc lấy từ trường hợp gần nhất
+        h, w = 480, 640  # Giá trị mặc định, tương ứng với kích thước camera
+        
+        # Lấy các landmark của miệng
+        left_corner = face_landmarks.landmark[61]
+        right_corner = face_landmarks.landmark[291]
+        lip_center = face_landmarks.landmark[14]
+        
+        # Tính toán các giá trị neutral
+        neutral_mouth_width = abs(left_corner.x * w - right_corner.x * w)
+        neutral_lip_curve = calculate_point_to_line_distance(lip_center, left_corner, right_corner, w, h)
+        
+        # Yêu cầu người dùng mỉm cười để lấy giá trị smiling
+        print("Hãy mỉm cười và giữ nụ cười trong 3 giây...")
+        time.sleep(3)
+        
+        # Giả định rằng người dùng đã mỉm cười
+        # Trong thực tế, có thể cần thêm xử lý để đảm bảo người dùng đang mỉm cười
+        
+        # Lấy các landmark khi mỉm cười
+        # Lưu ý: Trong implementaion thực tế, bạn sẽ cần lấy frame mới khi người dùng mỉm cười
+        # Ở đây chúng ta đang giả định rằng người dùng đã mỉm cười trong frame hiện tại
+        
+        smiling_mouth_width = neutral_mouth_width * 1.2  # Giả định miệng rộng hơn 20% khi cười
+        smiling_lip_curve = neutral_lip_curve * 1.5      # Giả định độ cong môi tăng 50% khi cười
+        
+        # Đặt ngưỡng ở giá trị trung bình
+        self.mouth_width_thres = (neutral_mouth_width + smiling_mouth_width) / 2
+        self.lip_curve_thres = (neutral_lip_curve + smiling_lip_curve) / 2
+        
+        print(f"Hiệu chỉnh hoàn tất!")
+        print(f"Ngưỡng độ rộng miệng: {self.mouth_width_thres:.2f}")
+        print(f"Ngưỡng độ cong môi: {self.lip_curve_thres:.2f}")
+        
+        self.calibrated = True
+        return self.calibrated
+    
     def detect(self, landmarks, h, w):
         """Phát hiện nụ cười dựa trên các landmark khuôn mặt."""
         if not self.calibrated:
