@@ -1,41 +1,37 @@
-import os
-import time
 import threading
-import numpy as np
 import pyaudio
 import wave
 import whisper
-import keyboard
+import numpy as np
+import time
+import os
+import tempfile
 import pyautogui
-from tempfile import NamedTemporaryFile
 
 class VoiceToText:
-    def __init__(self, model_name="small"):
-        """
-        Khởi tạo module voice-to-text
+    def __init__(self, model_name="small", on_status_change=None):
+        """Khởi tạo đối tượng Voice to Text.
         
         Args:
-            model_name: Kích thước model Whisper ("tiny", "base", "small", "medium", "large")
+            model_name: Tên model Whisper (tiny, base, small, medium, large)
+            on_status_change: Callback để cập nhật trạng thái ghi âm
         """
-        self.is_recording = False
-        self.audio_thread = None
-        self.audio_file = None
-        self.last_transcript = ""
-        self.model = None
         self.model_name = model_name
+        self.model = None
         
-        # Thông số ghi âm
+        # Cấu hình ghi âm
         self.format = pyaudio.paInt16
         self.channels = 1
         self.rate = 16000
         self.chunk = 1024
-        self.recording_time = 5  # Thời gian tối đa ghi âm (giây)
-        
-        # Khởi tạo PyAudio
+        self.is_recording = False
+        self.frames = []
+        self.audio_thread = None
         self.audio = pyaudio.PyAudio()
         
-        # Callback khi xử lý xong
+        # Callbacks
         self.on_transcription_done = None
+        self.on_status_change = on_status_change
         
         # Tự động load model
         self.load_model()
@@ -55,106 +51,136 @@ class VoiceToText:
             return False
         
         self.is_recording = True
+        self.frames = []
         self.audio_thread = threading.Thread(target=self._record_audio)
         self.audio_thread.daemon = True
         self.audio_thread.start()
+        
+        # Thông báo trạng thái nếu có callback
+        if self.on_status_change:
+            self.on_status_change("Recording Voice...")
+        
         return True
     
-    def stop_recording(self):
-        """Dừng ghi âm và bắt đầu chuyển đổi thành văn bản"""
+    def _record_audio(self):
+        """Quá trình ghi âm trong thread riêng"""
+        try:
+            stream = self.audio.open(
+                format=self.format,
+                channels=self.channels,
+                rate=self.rate,
+                input=True,
+                frames_per_buffer=self.chunk
+            )
+            
+            print("Đang ghi âm...")
+            
+            while self.is_recording:
+                data = stream.read(self.chunk, exception_on_overflow=False)
+                self.frames.append(data)
+            
+            stream.stop_stream()
+            stream.close()
+            print("Ghi âm kết thúc...")
+        
+        except Exception as e:
+            print(f"Lỗi trong quá trình ghi âm: {e}")
+            self.is_recording = False
+            if self.on_status_change:
+                self.on_status_change("Recording Error")
+    
+    def stop_recording(self, process_audio=True):
+        """Dừng ghi âm và chuyển đổi thành văn bản."""
         if not self.is_recording:
             return False
         
         self.is_recording = False
-        if self.audio_thread:
-            self.audio_thread.join(timeout=1.0)
         
-        # Chuyển đổi âm thanh thành văn bản trong thread khác
-        threading.Thread(target=self._transcribe_audio, daemon=True).start()
+        # Đợi audio thread kết thúc
+        if self.audio_thread and self.audio_thread.is_alive():
+            self.audio_thread.join(timeout=2.0)
+        
+        # Thông báo đang xử lý
+        if self.on_status_change:
+            self.on_status_change("Processing Voice...")
+        
+        if process_audio and self.frames:
+            # Xử lý audio trong thread riêng để không block UI
+            threading.Thread(target=self._process_audio).start()
+        else:
+            # Nếu không xử lý audio, đặt lại trạng thái
+            if self.on_status_change:
+                self.on_status_change("Not Recording")
+        
         return True
     
-    def _record_audio(self):
-        """Ghi âm và lưu vào file tạm"""
-        # Tạo file tạm để lưu âm thanh
-        with NamedTemporaryFile(suffix=".wav", delete=False) as f:
-            self.audio_file = f.name
-        
-        stream = self.audio.open(
-            format=self.format,
-            channels=self.channels,
-            rate=self.rate,
-            input=True,
-            frames_per_buffer=self.chunk
-        )
-        
-        print("Đang ghi âm...")
-        frames = []
-        start_time = time.time()
-        
-        while self.is_recording and (time.time() - start_time) < self.recording_time:
-            data = stream.read(self.chunk)
-            frames.append(data)
-        
-        print("Ghi âm kết thúc!")
-        
-        # Dừng và đóng stream
-        stream.stop_stream()
-        stream.close()
-        
-        # Lưu file âm thanh
-        wf = wave.open(self.audio_file, 'wb')
-        wf.setnchannels(self.channels)
-        wf.setsampwidth(self.audio.get_sample_size(self.format))
-        wf.setframerate(self.rate)
-        wf.writeframes(b''.join(frames))
-        wf.close()
-    
-    def _transcribe_audio(self):
-        """Chuyển đổi âm thanh thành văn bản"""
-        if not self.audio_file or not os.path.exists(self.audio_file):
-            print("Không tìm thấy file âm thanh!")
+    def _process_audio(self):
+        """Xử lý audio đã ghi và chuyển đổi thành văn bản."""
+        if not self.frames:
+            print("Không có dữ liệu âm thanh để xử lý")
+            if self.on_status_change:
+                self.on_status_change("Not Recording")
             return
         
         try:
-            print("Đang chuyển đổi âm thanh thành văn bản...")
-            result = self.model.transcribe(self.audio_file)
-            self.last_transcript = result["text"].strip()
-            print(f"Kết quả: {self.last_transcript}")
+            # Lưu tạm file WAV
+            temp_dir = tempfile.gettempdir()
+            temp_wav = os.path.join(temp_dir, "recording.wav")
             
-            # Xóa file tạm
-            try:
-                os.unlink(self.audio_file)
-                self.audio_file = None
-            except:
-                pass
+            wf = wave.open(temp_wav, 'wb')
+            wf.setnchannels(self.channels)
+            wf.setsampwidth(self.audio.get_sample_size(self.format))
+            wf.setframerate(self.rate)
+            wf.writeframes(b''.join(self.frames))
+            wf.close()
+            
+            print("Đang xử lý âm thanh thành văn bản...")
+            
+            # Xử lý với Whisper
+            result = self.model.transcribe(temp_wav, language="vi")
+            text = result["text"].strip()
+            
+            print(f"Kết quả: {text}")
             
             # Gọi callback nếu có
             if self.on_transcription_done:
-                self.on_transcription_done(self.last_transcript)
+                self.on_transcription_done(text)
             
-            # Tự động nhập văn bản tại vị trí con trỏ
-            self.type_text(self.last_transcript)
-            
-        except Exception as e:
-            print(f"Lỗi khi chuyển đổi âm thanh: {e}")
-    
-    def type_text(self, text):
-        """Nhập văn bản vào vị trí con trỏ hiện tại"""
-        if not text:
-            return
-        
-        pyautogui.typewrite(text)
-    
-    def close(self):
-        """Giải phóng tài nguyên"""
-        if self.is_recording:
-            self.stop_recording()
-        
-        if self.audio:
-            self.audio.terminate()
-            
-        if self.audio_file and os.path.exists(self.audio_file):
+            # Xóa file tạm
             try:
-                os.unlink(self.audio_file)
+                os.remove(temp_wav)
             except:
                 pass
+            
+            # Cập nhật trạng thái
+            if self.on_status_change:
+                self.on_status_change("Not Recording")
+                
+        except Exception as e:
+            print(f"Lỗi khi xử lý âm thanh: {e}")
+            if self.on_status_change:
+                self.on_status_change("Processing Error")
+    
+    def transcribe_and_type(self, text, text_widget=None):
+        """Hiển thị văn bản trong widget và gõ vào vị trí con trỏ hiện tại."""
+        # Hiển thị văn bản trong widget nếu có
+        if text_widget:
+            try:
+                text_widget.delete(1.0, "end")
+                text_widget.insert("end", text)
+            except Exception as e:
+                print(f"Lỗi khi hiển thị văn bản: {e}")
+        
+        # Gõ văn bản vào vị trí con trỏ chuột hiện tại
+        try:
+            pyautogui.typewrite(text)
+        except Exception as e:
+            print(f"Lỗi khi gõ văn bản: {e}")
+    
+    def __del__(self):
+        """Giải phóng tài nguyên khi đối tượng bị hủy."""
+        if self.is_recording:
+            self.stop_recording(process_audio=False)
+        
+        if hasattr(self, 'audio') and self.audio:
+            self.audio.terminate()

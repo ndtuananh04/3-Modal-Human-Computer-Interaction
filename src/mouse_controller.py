@@ -24,7 +24,7 @@ class MouseController:
         self.minimum_movement = 1
         
         # Hệ số scale cho vận tốc
-        self.velocity_scale = 20.0
+        self.velocity_scale = 15.0
     
     def calc_smooth_kernel(self, n: int) -> npt.ArrayLike:
         kernel = np.hamming(n * 2)[:n]

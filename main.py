@@ -4,7 +4,7 @@ import time
 import cv2
 
 from src.face_utils import init_face_mesh, extract_landmark_positions, draw_landmarks
-from src.smile_detector import SmileDetector
+from src.mouth_detector import MouthDetector
 from src.mouse_controller import MouseController
 
 def main():
@@ -15,27 +15,27 @@ def main():
     
     # Khởi tạo các thành phần
     face_mesh = init_face_mesh()
-    smile_detector = SmileDetector()
+    mouth_detector = MouthDetector()
     mouse_controller = MouseController()
     
     if args.nogui:
         # Chạy phiên bản dòng lệnh
-        run_cli_version(face_mesh, smile_detector, mouse_controller)
+        run_cli_version(face_mesh, mouth_detector, mouse_controller)
     else:
         # Chạy phiên bản có GUI
         try:
             from src.simple_gui import launch_simple_gui
-            launch_simple_gui(face_mesh, smile_detector, mouse_controller)
+            launch_simple_gui(face_mesh, mouth_detector, mouse_controller)
         except ImportError as e:
             print(f"Lỗi khi tải giao diện đồ họa: {e}")
             print("Chuyển sang chế độ dòng lệnh...")
-            run_cli_version(face_mesh, smile_detector, mouse_controller)
+            run_cli_version(face_mesh, mouth_detector, mouse_controller)
 
-def run_cli_version(face_mesh, smile_detector, mouse_controller):
+def run_cli_version(face_mesh, mouth_detector, mouse_controller):
     """Chạy phiên bản dòng lệnh của ứng dụng."""
     
-    # Thực hiện hiệu chỉnh smile detector
-    if not smile_detector.calibrate(face_mesh):
+    # Thực hiện hiệu chỉnh mouth detector
+    if not mouth_detector.calibrate(face_mesh):
         print("Hiệu chỉnh thất bại. Kết thúc chương trình...")
         return
     
@@ -77,7 +77,7 @@ def run_cli_version(face_mesh, smile_detector, mouse_controller):
                 vx, vy = mouse_controller.update(current_position)
                 
                 # Phát hiện nụ cười và click
-                if smile_detector.detect(face_landmarks, h, w):
+                if mouth_detector.detect(face_landmarks, h, w):
                     cv2.putText(frame, "Smile Detected!", (10, 60), 
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                     
