@@ -162,7 +162,7 @@ class VoiceToText:
                 self.on_status_change("Processing Error")
     
     def transcribe_and_type(self, text, text_widget=None):
-        """Hiển thị văn bản trong widget và gõ vào vị trí con trỏ hiện tại."""
+        """Hiển thị văn bản trong widget và gõ vào vị trí con trỏ hiện tại qua clipboard."""
         # Hiển thị văn bản trong widget nếu có
         if text_widget:
             try:
@@ -171,11 +171,26 @@ class VoiceToText:
             except Exception as e:
                 print(f"Lỗi khi hiển thị văn bản: {e}")
         
-        # Gõ văn bản vào vị trí con trỏ chuột hiện tại
+        # Sử dụng clipboard để copy-paste thay vì gõ trực tiếp
         try:
-            pyautogui.typewrite(text)
+            import pyperclip 
+            
+            # Lưu nội dung clipboard hiện tại
+            previous_clipboard = pyperclip.paste()
+            
+            # Copy văn bản mới vào clipboard
+            pyperclip.copy(text)
+            
+            # Paste vào vị trí con trỏ
+            pyautogui.hotkey('ctrl', 'v')
+            
         except Exception as e:
-            print(f"Lỗi khi gõ văn bản: {e}")
+            print(f"Lỗi khi xử lý văn bản qua clipboard: {e}")
+            # Thử phương pháp dự phòng nếu clipboard không hoạt động
+            try:
+                pyautogui.typewrite(text)
+            except Exception as e2:
+                print(f"Lỗi khi gõ văn bản: {e2}")
     
     def __del__(self):
         """Giải phóng tài nguyên khi đối tượng bị hủy."""
