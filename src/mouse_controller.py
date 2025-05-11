@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.typing as npt
 import pyautogui
+from src.accel import SigmoidAccel
 
 class MouseController:
     def __init__(self):
@@ -25,6 +26,8 @@ class MouseController:
         
         # Hệ số scale cho vận tốc
         self.velocity_scale = 15.0
+
+        self.accel = SigmoidAccel()
     
     def calc_smooth_kernel(self, n: int) -> npt.ArrayLike:
         kernel = np.hamming(n * 2)[:n]
@@ -56,6 +59,9 @@ class MouseController:
                 vx = (smooth_position[0] - self.prev_smooth_position[0]) * self.velocity_scale
                 vy = (smooth_position[1] - self.prev_smooth_position[1]) * self.velocity_scale
                 
+                vx *= self.accel(vx)
+                vy *= self.accel(vy)
+
                 # Di chuyển chuột nếu vận tốc đủ lớn
                 if np.abs(vx) > self.minimum_movement or np.abs(vy) > self.minimum_movement:
                     pyautogui.moveRel(vx, vy, duration=0)
