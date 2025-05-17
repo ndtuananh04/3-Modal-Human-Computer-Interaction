@@ -8,6 +8,7 @@ import os
 import tempfile
 import pyautogui
 
+os.environ["PATH"] += os.pathsep + r"C:\Users\ADMIN\Downloads\ffmpeg-7.1.1-full_build\bin"
 class VoiceToText:
     def __init__(self, model_name="small", on_status_change=None):
         """Khởi tạo đối tượng Voice to Text.

@@ -4,7 +4,11 @@ import numpy as np
 import pyautogui
 import copy
 import math
-
+dwell_start_time = 0
+dwell_threshold = 1.0  # giây
+mouse_prev_pos = pyautogui.position()
+dwell_radius = 15  # bán kính vùng đứng yên
+tmp = False
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 face_location = None
 new_face_loc = None
@@ -134,7 +138,13 @@ while True:
         vy = vy/3
     pyautogui.PAUSE = 0
     pyautogui.moveRel(vx, vy, duration=0)
-
+    if distance <= dwell_radius:
+        if time.time() - dwell_start_time > dwell_threshold and tmp is True:
+            pyautogui.click()
+            tmp = False
+    else:
+        dwell_start_time = time.time()
+        tmp = True    
     cv2.imshow('Face Detection', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break

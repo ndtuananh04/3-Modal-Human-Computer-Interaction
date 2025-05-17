@@ -281,6 +281,18 @@ class SimpleNoHandsGUI:
         speed_scale = Scale(right_frame, from_=1, to=40, orient=tk.HORIZONTAL,
                            variable=self.speed_var, command=self.update_speed)
         speed_scale.pack(fill=tk.X)
+
+        ttk.Label(right_frame, text="Mincutoff:").pack(anchor=tk.W, pady=(10, 0))
+        self.mincutoff = tk.DoubleVar(value=self.mouse_controller.mincutoff)
+        mincutoff = Scale(right_frame, from_=0.5, to=5, resolution=0.1, orient=tk.HORIZONTAL,
+                           variable=self.mincutoff, command=self.update_mincutoff)
+        mincutoff.pack(fill=tk.X)
+
+        ttk.Label(right_frame, text="Beta:").pack(anchor=tk.W, pady=(10, 0))
+        self.beta = tk.DoubleVar(value=self.mouse_controller.beta)
+        beta = Scale(right_frame, from_=0.001, to=0.5, resolution=0.001, orient=tk.HORIZONTAL,
+                           variable=self.beta, command=self.update_beta)
+        beta.pack(fill=tk.X)
         
         # Các nút điều khiển
         btn_frame = ttk.Frame(right_frame)
@@ -426,7 +438,15 @@ class SimpleNoHandsGUI:
     def update_speed(self, value):
         """Cập nhật tốc độ di chuyển chuột."""
         self.mouse_controller.velocity_scale = float(value)
+
+    def update_mincutoff(self, value):
+        self.mouse_controller.mincutoff = float(value)
+        self.mouse_controller.reset()
     
+    def update_beta(self, value):
+        self.mouse_controller.beta = float(value)
+        self.mouse_controller.reset()
+
     def calibrate(self):
         """Hiệu chỉnh nụ cười sử dụng frame hiện hành."""
         # Tạm dừng tracking nếu đang hoạt động

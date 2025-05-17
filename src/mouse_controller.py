@@ -2,18 +2,30 @@ import numpy as np
 import numpy.typing as npt
 import pyautogui
 from src.accel import SigmoidAccel
+import time
+from OneEuroFilter import OneEuroFilter
 
 class MouseController:
     def __init__(self):
         # Cấu hình cho chuột
         pyautogui.FAILSAFE = False
         pyautogui.PAUSE = 0
-        
+        self.mincutoff = 1.0
+        self.beta = 0.1
+        config = {
+            'freq': 120,       # Hz
+            'mincutoff': self.mincutoff,  # Hz
+            'beta': self.beta,       
+            'dcutoff': 1.0    
+            }
+
+        self.f1 = OneEuroFilter(**config)
+        self.f2 = OneEuroFilter(**config)
         # Cấu hình cho smoothing filter
-        self.buffer_size = 10
-        self.pointer_smooth = 10
+        self.buffer_size = 15
+        self.pointer_smooth = 15
         self.smooth_kernel = self.calc_smooth_kernel(self.pointer_smooth)
-        
+        self.prevvv = 0
         # Buffer cho các vị trí landmark thay vì vận tốc
         self.position_buffer = None
         self.delay_count = 0
@@ -28,15 +40,29 @@ class MouseController:
         self.velocity_scale = 15.0
 
         self.accel = SigmoidAccel()
-    
+    def reset(self):
+        config = {
+            'freq': 120,       # Hz
+            'mincutoff': self.mincutoff,  # Hz
+            'beta': self.beta,       
+            'dcutoff': 1.0    
+            }
+
+        self.f1 = OneEuroFilter(**config)
+        self.f2 = OneEuroFilter(**config)
+
     def calc_smooth_kernel(self, n: int) -> npt.ArrayLike:
         kernel = np.hamming(n * 2)[:n]
         kernel = kernel / kernel.sum()
         return kernel.reshape(n, 1)
 
     def apply_smoothing(self, data: npt.ArrayLike) -> npt.ArrayLike:
-        smooth_n = len(self.smooth_kernel)
-        return np.sum(self.smooth_kernel * data[-smooth_n:], axis=0)
+        # smooth_n = len(self.smooth_kernel)
+        # return np.sum(self.smooth_kernel * data[-smooth_n:], axis=0)
+        return np.array([self.f1(data[-1:][0][0],time.time()),self.f2(data[-1:][0][1],time.time())])
+
+        # self.prevvv = 0.15 * np.array([(data[-1:][0][0]),(data[-1:][0][1])]) + 0.85 * self.prevvv
+        # return self.prevvv
     
     def update(self, current_position):
         # Khởi tạo buffer nếu chưa có
