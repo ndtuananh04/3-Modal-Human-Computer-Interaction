@@ -7,17 +7,12 @@ mp_face_mesh = mp.solutions.face_mesh
 mp_drawing = mp.solutions.drawing_utils
 
 # Chỉ số iBUG 68 đối xứng
-IBUG_68_INDICES = np.array([
+INDICES = np.array([
     1,    
-    2,    
-    3,    
+    2,       
     4,    
     5,    
-    6,    
-    197,  
-    168, 
-    8,    
-    195
+    6
 ])
 
 def init_face_mesh(max_faces=1):
@@ -31,7 +26,7 @@ def init_face_mesh(max_faces=1):
 
 def extract_landmark_positions(landmarks, w, h, indices=None):
     if indices is None:
-        indices = IBUG_68_INDICES
+        indices = INDICES
         
     positions = np.array([
         [landmarks.landmark[idx].x * w, landmarks.landmark[idx].y * h]
@@ -52,36 +47,11 @@ def calculate_point_to_line_distance(point, line_p1, line_p2, w, h):
     denominator = np.linalg.norm(line_p2_np - line_p1_np)
     return numerator / denominator if denominator != 0 else 0
 
-def calculate_optical_flow(current_landmarks, previous_landmarks, w, h):
-    if previous_landmarks is None or current_landmarks is None:
-        return 0, 0
-
-    # Trích xuất các điểm quan trọng để theo dõi
-    current_points = np.array([
-        [current_landmarks.landmark[idx].x * w, current_landmarks.landmark[idx].y * h]
-        for idx in IBUG_68_INDICES
-    ])
-    
-    previous_points = np.array([
-        [previous_landmarks.landmark[idx].x * w, previous_landmarks.landmark[idx].y * h]
-        for idx in IBUG_68_INDICES
-    ])
-    
-    # Tính vector chuyển động
-    movement_vectors = current_points - previous_points
-    mean_movement = np.mean(movement_vectors, axis=0)
-    
-    # Scale movement
-    vx = mean_movement[0] * 20
-    vy = mean_movement[1] * 20
-    
-    return vx, vy
-
 def draw_landmarks(frame, face_landmarks, indices=None):
     """Vẽ các điểm landmark lên khung hình."""
     h, w, _ = frame.shape
     if indices is None:
-        indices = IBUG_68_INDICES
+        indices = INDICES
         
     for idx in indices:
         landmark = face_landmarks.landmark[idx]
