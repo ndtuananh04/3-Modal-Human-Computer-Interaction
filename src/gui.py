@@ -26,7 +26,7 @@ class HandsFreeGUI:
         self.is_recording = False
         self.last_click_time = 0
         self.last_mouth_open_time = 0
-        self.ui_update_rate = 15      # ms, tương đương ~60fps cho UI
+        self.ui_update_rate = 15    
         self.camera_ready = False 
         self.mouth_open_cooldown = 1.5
         

@@ -1,6 +1,8 @@
 import numpy as np
 import mediapipe as mp
 import cv2
+from mediapipe.tasks import python
+from mediapipe.tasks.python import vision
 
 # Khởi tạo Mediapipe Face Mesh
 mp_face_mesh = mp.solutions.face_mesh
@@ -8,15 +10,13 @@ mp_drawing = mp.solutions.drawing_utils
 
 # Chỉ số iBUG 68 đối xứng
 INDICES = np.array([
-    1,    
-    2,       
-    4,    
-    5,    
-    6
+    133, 362
 ])
 
+mp_task = "task/face_landmarker.task"
 def init_face_mesh(max_faces=1):
     """Khởi tạo và trả về đối tượng FaceMesh của MediaPipe."""
+    
     return mp_face_mesh.FaceMesh(
         max_num_faces=max_faces, 
         refine_landmarks=True, 
