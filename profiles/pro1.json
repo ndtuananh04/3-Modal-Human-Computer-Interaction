@@ -1,0 +1,12 @@
+{
+    "name": "Pro1",
+    "mouse_controller": {
+        "velocity_scale": 20.0,
+        "mincutoff": 0.5,
+        "beta": 0.09
+    },
+    "voice_processor": {
+        "selected_microphone": "Microphone Array (AMD Audio Device)",
+        "commands": []
+    }
+}

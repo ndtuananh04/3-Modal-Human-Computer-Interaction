@@ -1,6 +1,8 @@
 from srcc.camera_thread import CameraThread
 from srcc.face_processor import FaceProcessor
 from srcc.mouse_controller import MouseController
+from srcc.profile_manager import ProfileManager
+from srcc.voice_processor import VoiceProcessor
 import threading
 
 class Pipeline():
@@ -11,14 +13,17 @@ class Pipeline():
             cls._instance = super(Pipeline, cls).__new__(cls)
             cls._instance.is_started = False
             cls._instance.camera_thread = None
+            cls._instance.profile_manager = None
             cls._instance.face_processor = None
             cls._instance.mouse_controller = None 
+            cls._instance.voice_processor = None
             cls._instance.latest_processed_frame = None
             cls._instance.lock = threading.Lock()
         return cls._instance
         
     def start(self):
         if not self.is_started:
+            self.profile_manager = ProfileManager()
 
             self.mouse_controller = MouseController()
             # self.mouse_controller.set_get_cursor(lambda: self.face_processor.get_cursor())
@@ -30,16 +35,25 @@ class Pipeline():
             self.camera_thread.set_frame_callback(self.face_processor.process_frame)
             self.camera_thread.start() 
 
+            self.voice_processor = VoiceProcessor(self.profile_manager)
+            # self.voice_processor.initialize()
+
             self.is_started = True
             print(f"Pipeline started.")
         else:
             print(f"Pipeline is already running.")
 
+    def get_profile_manager(self):
+        return self.profile_manager
+    
     def get_camera_thread(self):
         return self.camera_thread
     
     def get_face_processor(self):
         return self.face_processor
+    
+    def get_mouse_controller(self):
+        return self.mouse_controller
     
     def stop(self):
         if self.is_started:

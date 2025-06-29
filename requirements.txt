@@ -5,3 +5,5 @@ openai-whisper
 opencv-python
 pillow
 mediapipe
+customtkinter
+dragonfly2

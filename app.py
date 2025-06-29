@@ -1,4 +1,5 @@
 import tkinter as tk
+import customtkinter as ctk
 from srcc.pipeline import Pipeline
 from srcc.gui import GUI
 
@@ -6,7 +7,7 @@ def main():
     pipeline = Pipeline()
     pipeline.start()
 
-    root = tk.Tk()
+    root = ctk.CTk()
     app = GUI(root)
 
     def on_close():

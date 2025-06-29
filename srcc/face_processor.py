@@ -79,6 +79,7 @@ class FaceProcessor:
     def get_processed_frame(self):
         with self.lock:
             if self.processed_frame is not None:
+                # resize_frame = cv.resize(self.processed_frame, (480, 360))
                 return self.processed_frame
         return None
 
