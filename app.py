@@ -7,15 +7,8 @@ def main():
     pipeline = Pipeline()
     pipeline.start()
 
-    root = ctk.CTk()
-    app = GUI(root)
-
-    def on_close():
-        pipeline.stop()
-        root.destroy()
-    
-    root.protocol("WM_DELETE_WINDOW", on_close)
-    root.mainloop()
+    app = GUI()
+    app.mainloop()
 
 if __name__ == "__main__":
     main()

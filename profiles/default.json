@@ -1,12 +1,44 @@
 {
-    "name": "Default",
     "mouse_controller": {
-        "velocity_scale": 15.0,
+        "velocity_scale": 20,
         "mincutoff": 0.8,
         "beta": 0.05
     },
     "voice_processor": {
         "selected_microphone": "Microphone Array (AMD Audio Device)",
-        "commands": []
+        "commands": [
+            {
+                "command": "click",
+                "action": "mouse_click"
+            },
+            {
+                "command": "double click",
+                "action": "mouse_double_click"
+            },
+            {
+                "command": "scroll up",
+                "action": "scroll_up"
+            },
+            {
+                "command": "scroll down",
+                "action": "scroll_down"
+            },
+            {
+                "command": "space",
+                "action": "key_space"
+            },
+            {
+                "command": "go",
+                "action": "key_g"
+            },
+            {
+                "command": "c",
+                "action": "key_c"
+            },
+            {
+                "command": "shoot",
+                "action": "key_s"
+            }
+        ]
     }
 }

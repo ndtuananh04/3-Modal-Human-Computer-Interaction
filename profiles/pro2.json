@@ -1,0 +1,7 @@
+{
+    "mouse_controller": {
+        "velocity_scale": 14,
+        "mincutoff": 0.8,
+        "beta": 0.05
+    }
+}

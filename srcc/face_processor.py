@@ -49,7 +49,7 @@ class FaceProcessor:
     def new_result (self):
         try:
             self.cursor = self.get_cursor()
-            if self.result_call_back:
+            if self.result_call_back and len(self.cursor) > 0:
                 self.result_call_back(self.cursor)
                 # print(f"Cursor Position callback called: {self.cursor}")
         except Exception as e:
@@ -85,9 +85,11 @@ class FaceProcessor:
 
     def get_cursor(self):
         with self.lock:
-            # if self.result and self.result.face_landmarks:
-            positions = np.array([[self.result.face_landmarks[0][idx].x * 640, self.result.face_landmarks[0][idx].y * 480] for idx in self.indices])
-            mean_position = np.mean(positions, axis=0)
+            if self.result and self.result.face_landmarks and len(self.result.face_landmarks) > 0:
+                positions = np.array([[self.result.face_landmarks[0][idx].x * 640, self.result.face_landmarks[0][idx].y * 480] for idx in self.indices])
+                mean_position = np.mean(positions, axis=0)
+            else:
+                mean_position = []
         return mean_position
     
     def close(self):

@@ -26,6 +26,8 @@ class Pipeline():
             self.profile_manager = ProfileManager()
 
             self.mouse_controller = MouseController()
+
+            self.voice_processor = VoiceProcessor(self.profile_manager, self.mouse_controller)
             # self.mouse_controller.set_get_cursor(lambda: self.face_processor.get_cursor())
 
             self.face_processor = FaceProcessor(self.mouse_controller.update_loop)
@@ -35,7 +37,6 @@ class Pipeline():
             self.camera_thread.set_frame_callback(self.face_processor.process_frame)
             self.camera_thread.start() 
 
-            self.voice_processor = VoiceProcessor(self.profile_manager)
             # self.voice_processor.initialize()
 
             self.is_started = True
@@ -54,6 +55,9 @@ class Pipeline():
     
     def get_mouse_controller(self):
         return self.mouse_controller
+    
+    def get_voice_processor(self):
+        return self.voice_processor
     
     def stop(self):
         if self.is_started:
