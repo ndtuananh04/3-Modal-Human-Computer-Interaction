@@ -51,6 +51,8 @@ class FaceProcessor:
             self.cursor = self.get_cursor()
             if self.result_call_back and len(self.cursor) > 0:
                 self.result_call_back(self.cursor)
+                # time.sleep(0.016)
+                # self.result_call_back(self.cursor)
                 # print(f"Cursor Position callback called: {self.cursor}")
         except Exception as e:
             print(f"new_result error: {e}")

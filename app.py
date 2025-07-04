@@ -1,13 +1,14 @@
 import tkinter as tk
 import customtkinter as ctk
 from srcc.pipeline import Pipeline
-from srcc.gui import GUI
+from srcc.guii import GUI
+from srcc.gui.main_window import MainWindow
 
 def main():
     pipeline = Pipeline()
     pipeline.start()
 
-    app = GUI()
+    app = MainWindow()
     app.mainloop()
 
 if __name__ == "__main__":

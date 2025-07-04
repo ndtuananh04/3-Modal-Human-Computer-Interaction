@@ -5,12 +5,39 @@ from src.accel import SigmoidAccel
 import time
 from OneEuroFilter import OneEuroFilter
 import threading
-import time
+import queue
+
+# class MouseMoverThread(threading.Thread):
+#     def __init__(self):
+#         super().__init__(daemon=True)
+#         self.queue = queue.Queue()
+#         self.running = True
+    
+#     def run(self):
+#         while self.running:
+#             try:
+#                 if not self.queue.empty():
+#                     vx, vy, duration = self.queue.get(block=False)
+#                     pyautogui.moveRel(vx, vy, duration=duration)
+#                     self.queue.task_done()
+#                 else:
+#                     time.sleep(0.001)  # Ngủ ngắn khi không có công việc
+    
+#             except Exception as e:
+#                 print(f"Error in mouse mover thread: {e}")
+    
+#     def move(self, vx, vy, duration=0.016):
+#         self.queue.put((vx, vy, duration))
+    
+#     def stop(self):
+#         self.running = False
 
 class MouseController:
     def __init__(self):
         pyautogui.FAILSAFE = False
         pyautogui.PAUSE = 0
+        pyautogui.MINIMUM_DURATION = 0
+        pyautogui.MINIMUM_SLEEP = 0.0049
         self.mincutoff = 0.5
         self.beta = 0.07
         config = {
@@ -36,6 +63,10 @@ class MouseController:
         self.update_interval = 0.005
         self.lock = threading.Lock()
         self.previous_cursor = None
+        self.tmp = time.time()
+
+        # self.mouse_mover = MouseMoverThread()
+        # self.mouse_mover.start()
 
     def reset(self):
         config = {
@@ -69,8 +100,12 @@ class MouseController:
             vx *= self.accel(vx)
             vy *= self.accel(vy)
 
+            pyautogui.moveRel(vx/2, vy/2, duration=0)
+            time.sleep(0.01)
             pyautogui.moveRel(vx, vy, duration=0)
-            
+
+            # self.mouse_mover.move(vx, vy, duration=0.022)
+
             self.prev_smooth_position = smooth_position
             return vx, vy
         

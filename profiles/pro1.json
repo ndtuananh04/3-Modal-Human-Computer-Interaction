@@ -22,6 +22,10 @@
             {
                 "command": "scroll down",
                 "action": "scroll_down"
+            },
+            {
+                "command": "go",
+                "action": "key_g"
             }
         ]
     }
