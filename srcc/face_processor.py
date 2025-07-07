@@ -7,7 +7,7 @@ import cv2 as cv
 import threading
 
 class FaceProcessor:
-    def __init__(self, result_call_back = None,  model_path="srcc/tasks/face_landmarker.task"):
+    def __init__(self, landmark_call_back = None, blendshape_call_back = None,  model_path="srcc/tasks/face_landmarker.task"):
         self.model_path = model_path
         self.model = None
         self.result = None  
@@ -15,7 +15,8 @@ class FaceProcessor:
         self.is_initialized = False
         self.processed_frame = None
         self.indices = [133, 362] 
-        self.result_call_back = result_call_back
+        self.landmark_call_back = landmark_call_back
+        self.blendshape_call_back = blendshape_call_back
 
     def initialize(self):
         try:
@@ -30,7 +31,7 @@ class FaceProcessor:
             base_options = python.BaseOptions(model_asset_buffer=model_buffer)
             options = vision.FaceLandmarkerOptions(
                 base_options=base_options,
-                output_face_blendshapes=False,
+                output_face_blendshapes=True,
                 output_facial_transformation_matrixes=False,
                 running_mode=mp.tasks.vision.RunningMode.LIVE_STREAM,
                 num_faces=1,
@@ -49,11 +50,10 @@ class FaceProcessor:
     def new_result (self):
         try:
             self.cursor = self.get_cursor()
-            if self.result_call_back and len(self.cursor) > 0:
-                self.result_call_back(self.cursor)
-                # time.sleep(0.016)
-                # self.result_call_back(self.cursor)
-                # print(f"Cursor Position callback called: {self.cursor}")
+            if self.landmark_call_back and len(self.cursor) > 0:
+                self.landmark_call_back(self.cursor)
+            if self.blendshape_call_back and self.result and self.result.face_blendshapes:
+                self.blendshape_call_back(self.result.face_blendshapes[0])
         except Exception as e:
             print(f"new_result error: {e}")
 
@@ -89,7 +89,7 @@ class FaceProcessor:
         with self.lock:
             if self.result and self.result.face_landmarks and len(self.result.face_landmarks) > 0:
                 positions = np.array([[self.result.face_landmarks[0][idx].x * 640, self.result.face_landmarks[0][idx].y * 480] for idx in self.indices])
-                mean_position = np.mean(positions, axis=0)
+                mean_position = np.mean(positions, axis=0) #640 and 480 are magic numbers, fix them later
             else:
                 mean_position = []
         return mean_position

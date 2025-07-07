@@ -33,32 +33,43 @@ class ProfileManagerUI(ctk.CTkFrame):
         self.profile_dropdown.grid(row=0, column=1, padx=5, pady=5, sticky="e")
         
         # Profile buttons
+        button_frame = ctk.CTkFrame(self, fg_color="transparent")
+        button_frame.grid(row=1, column=0, columnspan=2, pady=2, sticky="ew")
+
+        self.grid_columnconfigure(0, weight=0)  # Label không cần mở rộng
+        self.grid_columnconfigure(1, weight=1) 
+
+        button_frame.columnconfigure(0, weight=1)
+        button_frame.columnconfigure(1, weight=1)
+        button_frame.columnconfigure(2, weight=1)
+        
+        # Profile buttons với padding giảm xuống
         self.save_profile_btn = ctk.CTkButton(
-            self,
+            button_frame,
             text="Save",
             command=self.save_current_profile,
-            width=65,
-            height=24
+            width=70,
+            height=28
         )
-        self.save_profile_btn.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
+        self.save_profile_btn.grid(row=0, column=0, padx=2, pady=2, sticky="ew")
         
         self.add_profile_btn = ctk.CTkButton(
-            self,
+            button_frame,
             text="Add",
             command=self.create_new_profile,
-            width=50,
-            height=24
+            width=70,
+            height=28
         )
-        self.add_profile_btn.grid(row=1, column=1, padx=5, pady=5)
+        self.add_profile_btn.grid(row=0, column=1, padx=2, pady=2, sticky="ew")
         
         self.delete_profile_btn = ctk.CTkButton(
-            self,
+            button_frame,
             text="Delete",
             command=self.delete_current_profile,
-            width=50,
-            height=24
+            width=70,
+            height=28
         )
-        self.delete_profile_btn.grid(row=1, column=2, padx=5, pady=5, sticky="ew")
+        self.delete_profile_btn.grid(row=0, column=2, padx=2, pady=2, sticky="ew")
     
     def on_profile_change(self, profile_name):
         if self.on_profile_change_callback:

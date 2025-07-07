@@ -62,7 +62,7 @@ class CameraThread:
                 failure_count = 0
                 
                 #flip the frame horizontally
-                frame = cv2.flip(frame, 1)
+                # frame = cv2.flip(frame, 1)
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
                 with self.lock:

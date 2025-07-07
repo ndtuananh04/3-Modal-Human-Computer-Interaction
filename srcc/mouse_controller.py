@@ -3,10 +3,10 @@ import numpy.typing as npt
 import pyautogui
 from src.accel import SigmoidAccel
 import time
-from OneEuroFilter import OneEuroFilter
+from srcc.modified_oneEuroFilter import OneEuroFilter
 import threading
 import queue
-
+import math
 # class MouseMoverThread(threading.Thread):
 #     def __init__(self):
 #         super().__init__(daemon=True)
@@ -40,15 +40,16 @@ class MouseController:
         pyautogui.MINIMUM_SLEEP = 0.0049
         self.mincutoff = 0.5
         self.beta = 0.07
+        self.vx = 0
+        self.vy = 0
         config = {
-            'freq': 120,      
+            'freq': 30,      
             'mincutoff': self.mincutoff, 
             'beta': self.beta,       
             'dcutoff': 1.0    
             }
 
         self.f1 = OneEuroFilter(**config)
-        self.f2 = OneEuroFilter(**config)
  
         self.position_buffer = None
         self.prev_smooth_position = None
@@ -76,7 +77,6 @@ class MouseController:
             'dcutoff': 1.0    
             }
         self.f1 = OneEuroFilter(**config)
-        self.f2 = OneEuroFilter(**config)
         self.prev_smooth_position = None
 
     def set_get_cursor(self, get_cursor_func):
@@ -85,31 +85,27 @@ class MouseController:
     
     def apply_smoothing(self, point):
         current_time = time.time()
-        return np.array([
-            self.f1(point[0], current_time),
-            self.f2(point[1], current_time)
-        ])
+        return self.f1(math.sqrt(point[0]**2+point[1]**2), current_time)
     
     def move(self, current_position):
-        smooth_position = self.apply_smoothing(current_position)
+        _, alpha = self.apply_smoothing(current_position)
         
         if self.prev_smooth_position is not None:
-            vx = (smooth_position[0] - self.prev_smooth_position[0]) * self.velocity_scale
-            vy = (smooth_position[1] - self.prev_smooth_position[1]) * self.velocity_scale
-            
-            vx *= self.accel(vx)
-            vy *= self.accel(vy)
+            self.vx, self.vy  = ((current_position - self.prev_smooth_position) * alpha + (1 - alpha) * (np.array([self.vx, self.vy])))
+            self.prev_smooth_position = current_position
+            vx = -self.vx*self.accel(self.vx*self.velocity_scale)*self.velocity_scale
+            vy = self.vy*self.accel(self.vy*self.velocity_scale)*self.velocity_scale
 
             pyautogui.moveRel(vx/2, vy/2, duration=0)
             time.sleep(0.01)
-            pyautogui.moveRel(vx, vy, duration=0)
+            pyautogui.moveRel(vx/2, vy/2, duration=0)
 
             # self.mouse_mover.move(vx, vy, duration=0.022)
 
-            self.prev_smooth_position = smooth_position
             return vx, vy
-        
-        self.prev_smooth_position = smooth_position
+        else:
+            self.prev_smooth_position = current_position
+            # self.mouse_mover.move(vx, vy, duration=0.022)
         return 0, 0
     
     def update_loop(self, cursor_pos=None):
@@ -145,3 +141,23 @@ class MouseController:
     
     def click(self):
         pyautogui.click()
+
+    def increase_speed(self, step=5):
+        try:
+            current = self.velocity_scale
+            new_speed = min(50, current + step) 
+            self.velocity_scale = new_speed
+            return True
+        except Exception as e:
+            print(f"Error increasing mouse speed: {e}")
+            return False
+
+    def decrease_speed(self, step=5):
+        try:
+            current = self.velocity_scale
+            new_speed = max(1, current - step) 
+            self.velocity_scale = new_speed
+            return True
+        except Exception as e:
+            print(f"Error decreasing mouse speed: {e}")
+            return False

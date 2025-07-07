@@ -177,7 +177,7 @@ while True:
                 "browInnerUp", "browDownLeft", "browDownRight",
                 "eyeBlinkLeft", "eyeBlinkRight",
                 "mouthLeft", "mouthRight", "mouthSmileLeft", "mouthSmileRight",
-                "mouthFunnel", "mouthRollLower", "mouthRollUpper", "jawOpen"
+                "mouthFunnel", "mouthRollLower", "mouthRollUpper", "jawOpen", "mouthShrugLower"
  # Using cheekPuff for "mồm thổi"
             ]
 

@@ -73,7 +73,7 @@ class VoiceProcessor:
         for rule in list(self.grammar.rules):
             self.grammar.remove_rule(rule)
 
-        command_rule = VoiceCommandRule(self.commands)
+        command_rule = VoiceCommandRule(self.commands, self.mouse_controller)
         self.grammar.add_rule(command_rule)
         
         self.grammar.load()
@@ -247,9 +247,10 @@ class VoiceProcessor:
 
 
 class VoiceCommandRule(CompoundRule):
-    def __init__(self, commands):
+    def __init__(self, commands, mouse_controller=None):
         self.commands = commands
-        
+        self.mouse_controller = mouse_controller 
+
         specs = []
         for cmd in commands:
             cmd_text = cmd.get("command", "")
@@ -298,21 +299,11 @@ class VoiceCommandRule(CompoundRule):
                 pyautogui.scroll(-10)  
                 return True
                 
-            # elif action == "increase_mouse_speed":
-            #     if self.voice_processor and self.voice_processor.mouse_controller:
-            #         current = self.voice_processor.mouse_controller.velocity_scale
-            #         new_speed = min(50, current + 5)
-            #         self.voice_processor.mouse_controller.velocity_scale = new_speed
-            #         print(f"Increased mouse speed to {new_speed}")
-            #         return True
+            elif action == "increase_mouse_speed":
+                return self.mouse_controller.increase_speed()
                     
-            # elif action == "decrease_mouse_speed":
-            #     if self.voice_processor and self.voice_processor.mouse_controller:
-            #         current = self.voice_processor.mouse_controller.velocity_scale
-            #         new_speed = max(5, current - 5)
-            #         self.voice_processor.mouse_controller.velocity_scale = new_speed
-            #         print(f"Decreased mouse speed to {new_speed}")
-            #         return True
+            elif action == "decrease_mouse_speed":
+                return self.mouse_controller.decrease_speed()
                     
             elif action.startswith("key_"):
                 key = action[4:] 

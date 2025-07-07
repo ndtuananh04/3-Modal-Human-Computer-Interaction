@@ -12,10 +12,6 @@
                 "action": "mouse_click"
             },
             {
-                "command": "double click",
-                "action": "mouse_double_click"
-            },
-            {
                 "command": "scroll up",
                 "action": "scroll_up"
             },
@@ -30,7 +26,50 @@
             {
                 "command": "go",
                 "action": "key_g"
+            },
+            {
+                "command": "c",
+                "action": "key_c"
+            },
+            {
+                "command": "speed down",
+                "action": "decrease_mouse_speed"
+            },
+            {
+                "command": "b",
+                "action": "key_b"
+            },
+            {
+                "command": "d",
+                "action": "key_d"
             }
         ]
+    },
+    "blendshape_bindings": {
+        "bindings": [
+            {
+                "blendshape": "mouthSmileLeft",
+                "action": "mouse_click",
+                "threshold": 0.7102439024390244
+            },
+            {
+                "blendshape": "mouthRight",
+                "action": "key_right",
+                "threshold": 0.26595121951219514
+            },
+            {
+                "blendshape": "browInnerUp",
+                "action": "key_space",
+                "threshold": 0.5219024390243903
+            },
+            {
+                "blendshape": "mouthShrugLower",
+                "action": "scroll_down",
+                "threshold": 0.4929268292682927
+            }
+        ],
+        "priority_order": [],
+        "threshold": 0.5,
+        "cooldown": 0.5
     }
 }
