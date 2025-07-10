@@ -3,6 +3,7 @@ import customtkinter as ctk
 from PIL import Image, ImageTk
 import os
 import sys
+from srcc.gui.submenu import SubmenuDropdown
 
 class BlendshapeSettingsUI(ctk.CTkFrame):
     def __init__(self, parent, blendshape_processor, profile_manager, current_settings):
@@ -99,17 +100,22 @@ class BlendshapeSettingsUI(ctk.CTkFrame):
                 )
                 blendshape_dropdown.grid(row=0, column=1, padx=5, pady=2, sticky="ew")
                 
-                action = binding.get("action", "unknown")
-                action_var = tk.StringVar(value=action)
+                action_var = binding.get("action", "unknown")
                 self.action_vars[i] = action_var
                 
-                action_dropdown = ctk.CTkOptionMenu(
+                action_dropdown = SubmenuDropdown(
                     row1,
-                    values=self.available_actions,
-                    variable=action_var,
-                    command=lambda v, idx=i, bs=blendshape: self._update_action(idx, bs, v),
-                    width=150,
+                    self.available_actions,
+                    action_var,
+                    callback=lambda v, idx=i, bs=blendshape: self._update_action(idx, bs, v)
                 )
+                # action_dropdown = ctk.CTkOptionMenu(
+                #     row1,
+                #     values=self.available_actions,
+                #     variable=action_var,
+                #     command=lambda v, idx=i, bs=blendshape: self._update_action(idx, bs, v),
+                #     width=150,
+                # )
                 action_dropdown.grid(row=0, column=3, padx=5, pady=2, sticky="ew")
                 
                 status_row = ctk.CTkFrame(binding_container, fg_color="transparent")
@@ -186,7 +192,6 @@ class BlendshapeSettingsUI(ctk.CTkFrame):
                 break
 
     def _update_threshold_label(self, value, label, blendshape):
-        """Cập nhật hiển thị giá trị threshold"""
         value = float(value)
         label.configure(text=f"{value:.2f}")
         self._update_blendshape_threshold(blendshape, value)
@@ -221,11 +226,12 @@ class BlendshapeSettingsUI(ctk.CTkFrame):
     def _show_binding_dialog(self, binding=None):
         dialog = ctk.CTkToplevel(self)
         dialog.title("Blendshape Binding")
-        dialog.geometry("400x220")
+        dialog.geometry("380x220")
         dialog.grab_set()
         
         frame = ctk.CTkFrame(dialog)
         frame.pack(fill="both", expand=True, padx=10, pady=10)
+        frame.columnconfigure(1, weight=1)
         
         # Blendshape selection
         blendshape_label = ctk.CTkLabel(frame, text="Blendshape:")
@@ -241,33 +247,77 @@ class BlendshapeSettingsUI(ctk.CTkFrame):
         action_label = ctk.CTkLabel(frame, text="Action:")
         action_label.grid(row=1, column=0, padx=5, pady=5, sticky="w")
         
-        action_var = tk.StringVar(value=binding["action"] if binding else "")
-        action_dropdown = ctk.CTkOptionMenu(
-            frame, values=self.available_actions, variable=action_var
+        actions_dict = self.blendshape_processor.get_available_actions()
+        action_var = ""
+        action_dropdown = SubmenuDropdown(
+            frame,
+            actions_dict,
+            action_var
         )
         action_dropdown.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
         
+        #Current value
+        status_label = ctk.CTkLabel(frame, text="Current Value:")
+        status_label.grid(row=2, column=0, padx=5, pady=5, sticky="w")
+        
+        # status_frame = ctk.CTkFrame(frame, fg_color="transparent")
+        # status_frame.grid(row=2, column=1, padx=5, pady=5, sticky="ew")
+        # status_frame.columnconfigure(0, weight=1)
+        
+        dialog.status_progress_bar = ctk.CTkProgressBar(frame, height=15)
+        dialog.status_progress_bar.grid(row=2, column=1, padx=0, pady=0, sticky="ew")
+        dialog.status_progress_bar.set(0.0)
+        
+        dialog.status_value_label = ctk.CTkLabel(frame, text="0.00", width=50)
+        dialog.status_value_label.grid(row=2, column=2, padx=0, pady=0, sticky="w")
+
         # Threshold
-        threshold_label = ctk.CTkLabel(frame, text="Threshold:")
-        threshold_label.grid(row=2, column=0, padx=5, pady=5, sticky="w")
+        threshold_label = ctk.CTkLabel(frame, text="Threshold:", anchor="w", width=50)
+        threshold_label.grid(row=3, column=0, padx=0, pady=5, sticky="w")
         
         threshold_var = ctk.DoubleVar(value=binding["threshold"] if binding else 0.5)
         threshold_slider = ctk.CTkSlider(
             frame, from_=0.1, to=1.0, variable=threshold_var
         )
-        threshold_slider.grid(row=2, column=1, padx=5, pady=5, sticky="ew")
+        threshold_slider.grid(row=3, column=1, padx=5, pady=5, sticky="ew")
         
-        threshold_value = ctk.CTkLabel(frame, text=f"{threshold_var.get():.2f}")
+        threshold_value = ctk.CTkLabel(frame, text=f"{threshold_var.get():.2f}", width=40)
         threshold_slider.configure(command=lambda v: threshold_value.configure(text=f"{float(v):.2f}"))
-        threshold_value.grid(row=2, column=2, padx=5, pady=5)
+        threshold_value.grid(row=3, column=2, padx=5, pady=5, sticky="e")
         
         # Buttons
         btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
         btn_frame.grid(row=4, column=0, columnspan=3, padx=5, pady=10, sticky="ew")
         
+        def update_dialog_status():
+            try:
+                current_blendshape = blendshape_var.get()
+                if current_blendshape and hasattr(dialog, 'status_progress_bar'):
+                    current_value = self.blendshape_processor.get_blendshape_value(current_blendshape)
+                    dialog.status_progress_bar.set(current_value)
+                    dialog.status_value_label.configure(text=f"{current_value:.2f}")
+                
+                if dialog.winfo_exists():
+                    dialog.after(33, update_dialog_status)
+            except:
+                pass  
+        
+        def _update_dialog_blendshape_status(selected_blendshape):
+            dialog.status_progress_bar.set(0.0)
+            dialog.status_value_label.configure(text="0.00")
+        
+        blendshape_dropdown.configure(command=_update_dialog_blendshape_status)
+        
+        if binding:
+            current_value = self.blendshape_processor.get_blendshape_value(binding["blendshape"])
+            dialog.status_progress_bar.set(current_value)
+            dialog.status_value_label.configure(text=f"{current_value:.2f}")
+        
+        update_dialog_status()
+
         def save_binding():
             blendshape = blendshape_var.get()
-            action = action_var.get()
+            action = action_dropdown.get_selected_action()
             threshold = threshold_var.get()
             
             if not blendshape or not action:

@@ -18,6 +18,70 @@ class VoiceProcessor:
         self.commands = []
         self.selected_microphone = None
 
+        self.actions = {
+            "mouse": [
+                "mouse_click", 
+                "mouse_right_click", 
+                "mouse_middle_click",
+                "mouse_double_click",
+                "scroll_up", 
+                "scroll_down"
+            ],
+            "basic_keys": [
+                "key_space", 
+                "key_enter", 
+                "key_tab", 
+                "key_escape", 
+                "key_backspace", 
+                "key_delete"
+            ],
+            "arrow_keys": [
+                "key_up", 
+                "key_down", 
+                "key_left", 
+                "key_right"
+            ],
+            "number_keys": [
+                "key_0", "key_1", "key_2", "key_3", "key_4", 
+                "key_5", "key_6", "key_7", "key_8", "key_9"
+            ],
+            "letter_keys": [
+                "key_a", "key_b", "key_c", "key_d", "key_e", "key_f", "key_g",
+                "key_h", "key_i", "key_j", "key_k", "key_l", "key_m", "key_n",
+                "key_o", "key_p", "key_q", "key_r", "key_s", "key_t", "key_u",
+                "key_v", "key_w", "key_x", "key_y", "key_z"
+            ],
+            "function_keys": [
+                "key_f1", "key_f2", "key_f3", "key_f4", "key_f5", "key_f6",
+                "key_f7", "key_f8", "key_f9", "key_f10", "key_f11", "key_f12"
+            ],
+            "hotkeys_system": [
+                "hotkey_ctrl+c",        
+                "hotkey_ctrl+v",        
+                "hotkey_ctrl+x",       
+                "hotkey_ctrl+z",        
+                "hotkey_ctrl+y",        
+                "hotkey_ctrl+s",        
+                "hotkey_ctrl+a",        
+                "hotkey_ctrl+f",        
+                "hotkey_ctrl+h",        
+                "hotkey_ctrl+n",       
+                "hotkey_ctrl+o",        
+                "hotkey_ctrl+p",        
+                "hotkey_ctrl+w",        
+                "hotkey_ctrl+q",         
+                "hotkey_alt+f4",        
+                "hotkey_alt+tab",      
+                "hotkey_win+d",          
+                "hotkey_win+l",          
+                "hotkey_win+r",       
+            ],
+            "modifiers": [
+                "increase_mouse_speed",
+                "decrease_mouse_speed"
+            ]
+        }
+
         self.initialize()
         
     def initialize(self):
@@ -73,7 +137,7 @@ class VoiceProcessor:
         for rule in list(self.grammar.rules):
             self.grammar.remove_rule(rule)
 
-        command_rule = VoiceCommandRule(self.commands, self.mouse_controller)
+        command_rule = VoiceCommandRule(self.commands, self.mouse_controller, self.actions)
         self.grammar.add_rule(command_rule)
         
         self.grammar.load()
@@ -244,13 +308,22 @@ class VoiceProcessor:
         self.configure_microphone()
         if self.grammar:
             self.create_rules()
+        
+    def get_available_actions(self, category=None):
+        if category and category in self.actions:
+            return self.actions[category]
+        elif category:
+            return []  
+        else:
+            return self.actions
 
 
 class VoiceCommandRule(CompoundRule):
-    def __init__(self, commands, mouse_controller=None):
+    def __init__(self, commands, mouse_controller=None, actions=None):
         self.commands = commands
         self.mouse_controller = mouse_controller 
-
+        self.actions = actions
+        
         specs = []
         for cmd in commands:
             cmd_text = cmd.get("command", "")
@@ -283,21 +356,17 @@ class VoiceCommandRule(CompoundRule):
         print(f"Executing action: {action}")
         
         try:
-            if action == "mouse_click":
-                pyautogui.click()
-                return True
-                
-            elif action == "mouse_double_click":
-                pyautogui.doubleClick()
-                return True
-                
-            elif action == "scroll_up":
-                pyautogui.scroll(10) 
-                return True
-                
-            elif action == "scroll_down":
-                pyautogui.scroll(-10)  
-                return True
+            if action in self.actions["mouse"]:
+                if action == "mouse_click":
+                    pyautogui.click()
+                elif action == "mouse_right_click":
+                    pyautogui.click(button='right')
+                elif action == "mouse_middle_click":
+                    pyautogui.click(button="middle")
+                elif action == "mouse_double_click":
+                    pyautogui.doubleClick()
+                elif action in ["scroll_up", "scroll_down"]:
+                    pass 
                 
             elif action == "increase_mouse_speed":
                 return self.mouse_controller.increase_speed()

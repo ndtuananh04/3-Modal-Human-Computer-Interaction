@@ -128,6 +128,8 @@ class MainWindow(ctk.CTk):
             self.current_settings, 
             self.mouse_controller
         )
+        self.mouse_settings.set_face_processor(self.face_processor)
+        self.mouse_settings.set_profile_manager(self.profile_manager)
 
         # Tab Blendshape
         tab2 = settings_frame.add("Blendshape")

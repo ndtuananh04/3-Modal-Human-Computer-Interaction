@@ -25,16 +25,42 @@ class BlendshapeProcessor:
                                "mouthRollLower", "mouthFunnel", "mouthSmileLeft", "jawOpen", "browInnerUp"]
 
         self.actions = {
-            "mouse": ["mouse_click", "mouse_right_click", "mouse_double_click", 
-                     "scroll_up", "scroll_down"],
-            "keys": ["key_space", "key_enter", "key_tab", "key_escape", 
-                    "key_up", "key_down", "key_left", "key_right",
-                    "key_0", "key_1", "key_2", "key_3", "key_4", 
-                    "key_5", "key_6", "key_7", "key_8", "key_9",
-                    "key_a", "key_b", "key_c", "key_d", "key_e", "key_f", "key_g",
-                    "key_h", "key_i", "key_j", "key_k", "key_l", "key_m", "key_n",
-                    "key_o", "key_p", "key_q", "key_r", "key_s", "key_t", "key_u",
-                    "key_v", "key_w", "key_x", "key_y", "key_z"]
+            "mouse": [
+                "mouse_click", 
+                "mouse_right_click", 
+                "mouse_middle_click",
+                "mouse_double_click",
+                "scroll_up", 
+                "scroll_down"
+            ],
+            "basic_keys": [
+                "key_space", 
+                "key_enter", 
+                "key_tab", 
+                "key_escape", 
+                "key_backspace", 
+                "key_delete"
+            ],
+            "arrow_keys": [
+                "key_up", 
+                "key_down", 
+                "key_left", 
+                "key_right"
+            ],
+            "number_keys": [
+                "key_0", "key_1", "key_2", "key_3", "key_4", 
+                "key_5", "key_6", "key_7", "key_8", "key_9"
+            ],
+            "letter_keys": [
+                "key_a", "key_b", "key_c", "key_d", "key_e", "key_f", "key_g",
+                "key_h", "key_i", "key_j", "key_k", "key_l", "key_m", "key_n",
+                "key_o", "key_p", "key_q", "key_r", "key_s", "key_t", "key_u",
+                "key_v", "key_w", "key_x", "key_y", "key_z"
+            ],
+            "function_keys": [
+                "key_f1", "key_f2", "key_f3", "key_f4", "key_f5", "key_f6",
+                "key_f7", "key_f8", "key_f9", "key_f10", "key_f11", "key_f12"
+            ]
         }
 
         if profile_manager:
@@ -209,16 +235,16 @@ class BlendshapeProcessor:
         self.active_action = action
         
         try:
-            if action == "mouse_click" or action == "mouse_left_click":
-                pyautogui.mouseDown(button="left")
-            elif action == "mouse_right_click":
-                pyautogui.mouseDown(button="right")
-            elif action == "mouse_middle_click":
-                pyautogui.mouseDown(button="middle")
-            elif action == "scroll_up":
-                pass
-            elif action == "scroll_down":
-                pass
+            if action in self.actions["mouse"]:
+                if action in ["mouse_click", "mouse_left_click"]:
+                    pyautogui.mouseDown(button="left")
+                elif action == "mouse_right_click":
+                    pyautogui.mouseDown(button="right")
+                elif action == "mouse_middle_click":
+                    pyautogui.mouseDown(button="middle")
+                elif action in ["scroll_up", "scroll_down"]:
+                    pass 
+                    
             elif action.startswith("key_"):
                 key = action[4:]  
                 pyautogui.keyDown(key)
@@ -236,14 +262,16 @@ class BlendshapeProcessor:
         try:
             action = self.active_action
             
-            if action == "mouse_click" or action == "mouse_left_click":
-                pyautogui.mouseUp(button="left")
-            elif action == "mouse_right_click":
-                pyautogui.mouseUp(button="right")
-            elif action == "mouse_middle_click":
-                pyautogui.mouseUp(button="middle")
-            elif action == "scroll_up" or action == "scroll_down":
-                pass
+            if action in self.actions["mouse"]:
+                if action in ["mouse_click", "mouse_left_click"]:
+                    pyautogui.mouseUp(button="left")
+                elif action == "mouse_right_click":
+                    pyautogui.mouseUp(button="right")
+                elif action == "mouse_middle_click":
+                    pyautogui.mouseUp(button="middle")
+                elif action in ["scroll_up", "scroll_down"]:
+                    pass
+                    
             elif action.startswith("key_"):
                 key = action[4:] 
                 pyautogui.keyUp(key)
@@ -261,11 +289,19 @@ class BlendshapeProcessor:
     def get_available_blendshapes(self):
         return self.blendshapes
     
-    def get_available_actions(self):
-        all_actions = []
-        for category in self.actions.values():
-            all_actions.extend(category)
-        return all_actions
+    def get_available_actions(self, category=None):
+        if category and category in self.actions:
+            return self.actions[category]
+        elif category:
+            return []  
+        else:
+            return self.actions
+        
+    def get_action_category(self, action):
+        for category, actions in self.actions.items():
+            if action in actions:
+                return category
+        return None
     
     def add_binding(self, blendshape, action, threshold=None):
         if threshold is None:

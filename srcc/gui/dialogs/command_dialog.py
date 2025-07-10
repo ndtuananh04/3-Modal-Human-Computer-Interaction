@@ -1,5 +1,6 @@
 import tkinter as tk
 import customtkinter as ctk
+from srcc.gui.submenu import SubmenuDropdown
 
 class CommandDialog:
     def __init__(self, parent, command_index, command_text, action_text, voice_processor, profile_manager):
@@ -7,6 +8,7 @@ class CommandDialog:
         self.command_index = command_index
         self.voice_processor = voice_processor
         self.profile_manager = profile_manager
+        self.actions = voice_processor.get_available_actions()
         
         self._create_dialog(command_text, action_text)
     
@@ -32,9 +34,15 @@ class CommandDialog:
         action_label = ctk.CTkLabel(frame, text="Action:")
         action_label.grid(row=1, column=0, padx=5, pady=5, sticky="w")
         
-        self.action_var = tk.StringVar(value=action_text)
-        action_entry = ctk.CTkEntry(frame, textvariable=self.action_var, width=250)
-        action_entry.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
+        self.action_var = action_text
+        
+        action_dropdown = SubmenuDropdown(
+            frame,
+            self.actions,
+            self.action_var,
+            callback=lambda action: setattr(self, 'action_var', action)
+        )
+        action_dropdown.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
         
         # Buttons
         btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
@@ -71,7 +79,7 @@ class CommandDialog:
     
     def _save_changes(self):
         command = self.cmd_var.get().strip()
-        action = self.action_var.get().strip()
+        action = self.action_var
         
         if not command or not action:
             print("Command and action cannot be empty")
@@ -134,20 +142,20 @@ class AddCommandDialog:
         self.parent = parent
         self.voice_processor = voice_processor
         self.profile_manager = profile_manager
-        
+        self.actions = voice_processor.get_available_actions()
         self._create_dialog()
     
     def _create_dialog(self):
         self.dialog = ctk.CTkToplevel(self.parent)
         self.dialog.title("Add Voice Command")
-        self.dialog.geometry("400x200")
+        self.dialog.geometry("380x180")
         self.dialog.grab_set()
         
         frame = ctk.CTkFrame(self.dialog)
         frame.pack(fill="both", expand=True, padx=20, pady=20)
         
         # Command input
-        cmd_label = ctk.CTkLabel(frame, text="Command phrase:")
+        cmd_label = ctk.CTkLabel(frame, text="Phrase:")
         cmd_label.grid(row=0, column=0, padx=5, pady=5, sticky="w")
         
         self.cmd_var = tk.StringVar()
@@ -158,10 +166,16 @@ class AddCommandDialog:
         # Action input
         action_label = ctk.CTkLabel(frame, text="Action:")
         action_label.grid(row=1, column=0, padx=5, pady=5, sticky="w")
+    
+        self.action_var = ""
         
-        self.action_var = tk.StringVar()
-        action_entry = ctk.CTkEntry(frame, textvariable=self.action_var, width=250)
-        action_entry.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
+        action_dropdown = SubmenuDropdown(
+            frame,
+            self.actions,
+            self.action_var,
+            callback=lambda action: setattr(self, 'action_var', action)
+        )
+        action_dropdown.grid(row=1, column=1, padx=5, pady=5, sticky="ew")
         
         # Buttons
         btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
@@ -187,7 +201,7 @@ class AddCommandDialog:
     
     def _save_command(self):
         command = self.cmd_var.get().strip()
-        action = self.action_var.get().strip()
+        action = self.action_var
         
         if not command or not action:
             return

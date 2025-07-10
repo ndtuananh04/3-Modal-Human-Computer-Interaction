@@ -1,6 +1,7 @@
 import tkinter as tk
 import customtkinter as ctk
 from srcc.gui.dialogs.command_dialog import CommandDialog, AddCommandDialog
+from srcc.gui.submenu import SubmenuDropdown
 
 class VoiceSettingsUI(ctk.CTkFrame):
     def __init__(self, parent, voice_processor, profile_manager, current_settings):

@@ -29,19 +29,23 @@
             },
             {
                 "command": "c",
-                "action": "key_c"
+                "action": "hotkey_win+d"
             },
             {
-                "command": "speed down",
-                "action": "decrease_mouse_speed"
+                "command": "speed up",
+                "action": "increase_mouse_speed"
             },
             {
                 "command": "b",
                 "action": "key_b"
             },
             {
-                "command": "d",
-                "action": "key_d"
+                "command": "r",
+                "action": "key_r"
+            },
+            {
+                "command": "h",
+                "action": "key_h"
             }
         ]
     },
@@ -66,10 +70,18 @@
                 "blendshape": "mouthShrugLower",
                 "action": "scroll_down",
                 "threshold": 0.4929268292682927
+            },
+            {
+                "blendshape": "jawOpen",
+                "action": "key_tab",
+                "threshold": 0.7946768060836502
             }
         ],
         "priority_order": [],
         "threshold": 0.5,
         "cooldown": 0.5
+    },
+    "face_processing": {
+        "mode": "LIVE_STREAM"
     }
 }
