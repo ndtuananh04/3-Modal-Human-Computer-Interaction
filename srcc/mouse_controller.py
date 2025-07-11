@@ -95,7 +95,8 @@ class MouseController:
             self.prev_smooth_position = current_position
             vx = -self.vx*self.accel(self.vx*self.velocity_scale)*self.velocity_scale
             vy = self.vy*self.accel(self.vy*self.velocity_scale)*self.velocity_scale
-
+            #vx = -self.vx*self.velocity_scale
+            #vy = self.vy*self.velocity_scale
             pyautogui.moveRel(vx/2, vy/2, duration=0)
             time.sleep(0.01)
             pyautogui.moveRel(vx/2, vy/2, duration=0)
