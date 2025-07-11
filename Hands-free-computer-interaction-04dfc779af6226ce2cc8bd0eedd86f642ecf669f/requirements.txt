@@ -1,7 +1,0 @@
-pyaudio
-pyautogui
-pyperclip 
-openai-whisper
-opencv-python
-pillow
-mediapipe
