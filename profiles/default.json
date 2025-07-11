@@ -28,26 +28,21 @@
     "blendshape_bindings": {
         "bindings": [
             {
-                "blendshape": "mouthFunnel",
-                "action": "mouse_right_click",
-                "threshold": 0.09692682926829267
-            },
-            {
                 "blendshape": "mouthSmileLeft",
                 "action": "key_3",
                 "threshold": 0.5,
-                "mode": "hold"
+                "mode": "press"
             },
             {
                 "blendshape": "browInnerUp",
                 "action": "key_up",
-                "threshold": 0.3806083650190114,
-                "mode": "hold"
+                "threshold": 0.38,
+                "mode": "press"
             },
             {
                 "blendshape": "mouthRight",
                 "action": "key_right",
-                "threshold": 0.26595121951219514,
+                "threshold": 0.26,
                 "mode": "hold"
             },
             {

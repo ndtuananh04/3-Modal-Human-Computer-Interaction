@@ -149,7 +149,7 @@ class BlendshapeSettingsUI(ctk.CTkFrame):
                     row2, 
                     from_=0.01, 
                     to=1.0, 
-                    variable=threshold_var,
+                    variable=threshold_var, number_of_steps=100,
                     command=lambda v, bs=blendshape: self._update_blendshape_threshold(bs, v)
                 )
                 threshold_slider.grid(row=0, column=1, padx=5, pady=2, sticky="ew")
@@ -165,9 +165,7 @@ class BlendshapeSettingsUI(ctk.CTkFrame):
                     text=binding.get("mode", "hold").upper(),
                     command=lambda bs=blendshape: self._toggle_mode(bs),
                     width=60,
-                    height=24,
-                    fg_color="#3B8ED0" if binding.get("mode", "hold") == "hold" else "#D35B58",
-                    hover_color="#1F6AA5" if binding.get("mode", "hold") == "hold" else "#A04441"
+                    height=24
                 )
                 mode_btn.pack(side="left", padx=5, pady=2)
 
@@ -299,7 +297,7 @@ class BlendshapeSettingsUI(ctk.CTkFrame):
         
         threshold_var = ctk.DoubleVar(value=binding["threshold"] if binding else 0.5)
         threshold_slider = ctk.CTkSlider(
-            frame, from_=0.1, to=1.0, variable=threshold_var
+            frame, from_=0.01, to=1.0, number_of_steps=100, variable=threshold_var
         )
         threshold_slider.grid(row=3, column=1, padx=5, pady=5, sticky="ew")
         
