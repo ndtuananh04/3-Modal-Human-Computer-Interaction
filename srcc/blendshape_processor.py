@@ -163,9 +163,9 @@ class BlendshapeProcessor:
         action, value = self.process_blendshapes(blendshapes)
 
         if self.active_action == "scroll_up":
-            pyautogui.scroll(5 )  
+            pyautogui.scroll(20)  
         elif self.active_action == "scroll_down":
-            pyautogui.scroll(5)
+            pyautogui.scroll(20)
 
         return action, value
 

@@ -1,8 +1,8 @@
 {
     "mouse_controller": {
         "velocity_scale": 20.0,
-        "mincutoff": 0.5,
-        "beta": 0.07
+        "mincutoff": 0.6000000000000001,
+        "beta": 0.2
     },
     "voice_processor": {
         "selected_microphone": "Microphone Array (AMD Audio Device)",
@@ -27,6 +27,11 @@
     },
     "blendshape_bindings": {
         "bindings": [
+            {
+                "blendshape": "mouthFunnel",
+                "action": "mouse_right_click",
+                "threshold": 0.09692682926829267
+            },
             {
                 "blendshape": "mouthSmileLeft",
                 "action": "key_3",
