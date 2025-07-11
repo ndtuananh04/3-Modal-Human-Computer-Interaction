@@ -1,6 +1,6 @@
 {
     "mouse_controller": {
-        "velocity_scale": 18.0,
+        "velocity_scale": 20.0,
         "mincutoff": 0.5,
         "beta": 0.07
     },
@@ -54,5 +54,8 @@
         ],
         "threshold": 0.5,
         "cooldown": 0.001
+    },
+    "face_processing": {
+        "mode": "LIVE_STREAM"
     }
 }

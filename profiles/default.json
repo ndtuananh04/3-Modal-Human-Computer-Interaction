@@ -12,40 +12,16 @@
                 "action": "mouse_click"
             },
             {
+                "command": "double click",
+                "action": "mouse_double_click"
+            },
+            {
                 "command": "scroll up",
                 "action": "scroll_up"
             },
             {
                 "command": "scroll down",
                 "action": "scroll_down"
-            },
-            {
-                "command": "space",
-                "action": "key_space"
-            },
-            {
-                "command": "go",
-                "action": "key_g"
-            },
-            {
-                "command": "c",
-                "action": "hotkey_win+d"
-            },
-            {
-                "command": "speed up",
-                "action": "increase_mouse_speed"
-            },
-            {
-                "command": "b",
-                "action": "key_b"
-            },
-            {
-                "command": "r",
-                "action": "key_r"
-            },
-            {
-                "command": "h",
-                "action": "key_h"
             }
         ]
     },
@@ -53,28 +29,33 @@
         "bindings": [
             {
                 "blendshape": "mouthSmileLeft",
-                "action": "mouse_click",
-                "threshold": 0.7102439024390244
+                "action": "key_3",
+                "threshold": 0.5,
+                "mode": "hold"
+            },
+            {
+                "blendshape": "browInnerUp",
+                "action": "key_up",
+                "threshold": 0.3806083650190114,
+                "mode": "hold"
             },
             {
                 "blendshape": "mouthRight",
                 "action": "key_right",
-                "threshold": 0.26595121951219514
-            },
-            {
-                "blendshape": "browInnerUp",
-                "action": "key_space",
-                "threshold": 0.5219024390243903
-            },
-            {
-                "blendshape": "mouthShrugLower",
-                "action": "scroll_down",
-                "threshold": 0.4929268292682927
+                "threshold": 0.26595121951219514,
+                "mode": "hold"
             },
             {
                 "blendshape": "jawOpen",
-                "action": "key_tab",
-                "threshold": 0.7946768060836502
+                "action": "key_1",
+                "threshold": 0.5,
+                "mode": "hold"
+            },
+            {
+                "blendshape": "mouthFunnel",
+                "action": "key_2",
+                "threshold": 0.5,
+                "mode": "hold"
             }
         ],
         "priority_order": [],
@@ -82,6 +63,6 @@
         "cooldown": 0.5
     },
     "face_processing": {
-        "mode": "LIVE_STREAM"
+        "mode": "IMAGE"
     }
 }

@@ -160,6 +160,17 @@ class BlendshapeSettingsUI(ctk.CTkFrame):
                 )
                 threshold_value.grid(row=0, column=2, padx=5, pady=2, sticky="w")
                 
+                mode_btn = ctk.CTkButton(
+                    binding_container,
+                    text=binding.get("mode", "hold").upper(),
+                    command=lambda bs=blendshape: self._toggle_mode(bs),
+                    width=60,
+                    height=24,
+                    fg_color="#3B8ED0" if binding.get("mode", "hold") == "hold" else "#D35B58",
+                    hover_color="#1F6AA5" if binding.get("mode", "hold") == "hold" else "#A04441"
+                )
+                mode_btn.pack(side="left", padx=5, pady=2)
+
                 delete_btn = ctk.CTkButton(
                     binding_container, 
                     text="Del", 
@@ -210,6 +221,17 @@ class BlendshapeSettingsUI(ctk.CTkFrame):
         
         self.blendshape_processor.save_to_profile()
 
+    def _toggle_mode(self, blendshape):
+        for binding in self.blendshape_processor.bindings:
+            if binding.get("blendshape") == blendshape:
+                current_mode = binding.get("mode", "hold")
+                new_mode = "press" if current_mode == "hold" else "hold"
+                binding["mode"] = new_mode
+                self.blendshape_processor.save_to_profile()
+                print(f"Mode toggled: {blendshape} -> {new_mode}")
+                self._load_bindings() 
+                break
+
     def _add_binding(self):
         self._show_binding_dialog()
     
@@ -226,7 +248,7 @@ class BlendshapeSettingsUI(ctk.CTkFrame):
     def _show_binding_dialog(self, binding=None):
         dialog = ctk.CTkToplevel(self)
         dialog.title("Blendshape Binding")
-        dialog.geometry("380x220")
+        dialog.geometry("380x260")
         dialog.grab_set()
         
         frame = ctk.CTkFrame(dialog)
@@ -285,9 +307,21 @@ class BlendshapeSettingsUI(ctk.CTkFrame):
         threshold_slider.configure(command=lambda v: threshold_value.configure(text=f"{float(v):.2f}"))
         threshold_value.grid(row=3, column=2, padx=5, pady=5, sticky="e")
         
+        mode_label = ctk.CTkLabel(frame, text="Mode:")
+        mode_label.grid(row=4, column=0, padx=5, pady=5, sticky="w")
+
+        mode_var = tk.StringVar(value=binding.get("mode", "hold") if binding else "hold")
+        mode_dropdown = ctk.CTkOptionMenu(
+            frame, 
+            values=["hold", "press"], 
+            variable=mode_var,
+            width=100
+        )
+        mode_dropdown.grid(row=4, column=1, padx=5, pady=5, sticky="w")
+
         # Buttons
         btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
-        btn_frame.grid(row=4, column=0, columnspan=3, padx=5, pady=10, sticky="ew")
+        btn_frame.grid(row=5, column=0, columnspan=3, padx=5, pady=10, sticky="ew")
         
         def update_dialog_status():
             try:
@@ -319,6 +353,7 @@ class BlendshapeSettingsUI(ctk.CTkFrame):
             blendshape = blendshape_var.get()
             action = action_dropdown.get_selected_action()
             threshold = threshold_var.get()
+            mode = mode_var.get() 
             
             if not blendshape or not action:
                 return

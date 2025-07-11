@@ -31,7 +31,7 @@ class Pipeline():
 
             self.blendshape_processor = BlendshapeProcessor(self.profile_manager)
 
-            self.voice_processor = VoiceProcessor(self.profile_manager, self.mouse_controller)
+            self.voice_processor = VoiceProcessor(self.profile_manager, self.mouse_controller, self.blendshape_processor)
             # self.mouse_controller.set_get_cursor(lambda: self.face_processor.get_cursor())
 
             self.face_processor = FaceProcessor(self.mouse_controller.update_loop, self.blendshape_processor.update_blendshape)

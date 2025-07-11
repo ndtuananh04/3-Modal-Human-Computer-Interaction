@@ -25,8 +25,8 @@ class CameraThread:
     def camera_loop(self):
         try:
             self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+            # self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+            # self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
             
             if not self.cap.isOpened():
                 print("Can't open camera!")

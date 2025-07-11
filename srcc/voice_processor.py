@@ -8,10 +8,11 @@ from dragonfly import Grammar, CompoundRule
 from dragonfly.engines.backend_sapi5.engine import Sapi5InProcEngine
 
 class VoiceProcessor:
-    def __init__(self, profile_manager, mouse_controller):
+    def __init__(self, profile_manager, mouse_controller, blendshape_processor=None):
         self.stop_flag = threading.Event()
         self.profile_manager = profile_manager
         self.mouse_controller = mouse_controller
+        self.blendshape_processor = blendshape_processor
         self.thread = None
         self.engine = None
         self.grammar = None
@@ -86,9 +87,10 @@ class VoiceProcessor:
         
     def initialize(self):
         try:
+            print("Initializing voice processor...")
             self.engine = Sapi5InProcEngine()
             self.engine.connect()
-            
+
             self.available_microphones = self.get_available_microphones()
             
             self.load_commands_from_profile(self.profile_manager)
@@ -113,11 +115,8 @@ class VoiceProcessor:
             print(f"Available audio sources: {audio_sources}")
             if self.selected_microphone:
                 for i, (index, description, handle) in enumerate(audio_sources):
-                    print(i)
                     if description == self.selected_microphone:
-                        print(i)
                         self.engine.select_audio_source(i)
-                        print(3)
                         print(f"Choose microphone: {self.selected_microphone}")
                         break
                     else:
@@ -137,7 +136,7 @@ class VoiceProcessor:
         for rule in list(self.grammar.rules):
             self.grammar.remove_rule(rule)
 
-        command_rule = VoiceCommandRule(self.commands, self.mouse_controller, self.actions)
+        command_rule = VoiceCommandRule(self.commands, self.mouse_controller, self.actions, self.blendshape_processor)
         self.grammar.add_rule(command_rule)
         
         self.grammar.load()
@@ -316,12 +315,16 @@ class VoiceProcessor:
             return []  
         else:
             return self.actions
+        
+    def set_blendshape_processor(self, blendshape_processor):
+        self.blendshape_processor = blendshape_processor
 
 
 class VoiceCommandRule(CompoundRule):
-    def __init__(self, commands, mouse_controller=None, actions=None):
+    def __init__(self, commands, mouse_controller=None, actions=None, blendshape_processor=None):
         self.commands = commands
-        self.mouse_controller = mouse_controller 
+        self.mouse_controller = mouse_controller
+        self.blendshape_processor = blendshape_processor
         self.actions = actions
         
         specs = []
@@ -341,6 +344,11 @@ class VoiceCommandRule(CompoundRule):
         words = node.words()
         recognized_text = " ".join(words).lower()
         recognized_text = recognized_text.replace('"', '')
+
+        if not self.blendshape_processor.is_mouth_recently_open():
+            print("Voice command blocked: Mouth not open in recent 50 frames")
+            return
+        
         for command in self.commands:
             if command.get("command", "").lower() == recognized_text:
                 action = command.get("action", "")
@@ -351,7 +359,7 @@ class VoiceCommandRule(CompoundRule):
                 
         print(f"Command not recognized: {recognized_text}")
         return None
-    
+        
     def execute_action(self, action):
         print(f"Executing action: {action}")
         

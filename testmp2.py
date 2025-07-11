@@ -174,10 +174,18 @@ while True:
         if current_detection_result.face_blendshapes:
             # ✅ BLENDSHAPE NAMES TO DISPLAY ON THE CHART AND PRINT
             selected_names_for_display = [
-                "browInnerUp", "browDownLeft", "browDownRight",
-                "eyeBlinkLeft", "eyeBlinkRight",
+                # "browInnerUp", "browDownLeft", "browDownRight",
+                # "eyeBlinkLeft", "eyeBlinkRight",
                 "mouthLeft", "mouthRight", "mouthSmileLeft", "mouthSmileRight",
-                "mouthFunnel", "mouthRollLower", "mouthRollUpper", "jawOpen", "mouthShrugLower"
+                # "mouthFunnel", "mouthRollLower", "mouthRollUpper", "jawOpen", "mouthShrugLower"
+                "eyeLookDownLeft",
+                "eyeLookDownRight",
+                "eyeLookInLeft",
+                "eyeLookInRight",
+                "eyeLookOutLeft",
+                "eyeLookOutRight",
+                "eyeLookUpLeft",
+                "eyeLookUpRight"
  # Using cheekPuff for "mồm thổi"
             ]
 
