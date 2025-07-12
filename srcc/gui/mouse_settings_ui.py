@@ -69,7 +69,7 @@ class MouseSettingsUI(ctk.CTkFrame):
         self.mincutoff_var = ctk.DoubleVar(
             value=self.current_settings.get("mouse_controller", {}).get("mincutoff"))
         self.mincutoff_slider = ctk.CTkSlider(
-            self, from_=0.3, to=1, variable=self.mincutoff_var, number_of_steps=7,
+            self, from_=0.3, to=2, variable=self.mincutoff_var, number_of_steps=17,
             command=self.update_mincutoff
         )
         self.mincutoff_slider.pack(fill="x", padx=10, pady=(5, 0))
@@ -83,7 +83,7 @@ class MouseSettingsUI(ctk.CTkFrame):
         self.beta_var = ctk.DoubleVar(
             value=self.current_settings.get("mouse_controller", {}).get("beta"))
         self.beta_slider = ctk.CTkSlider(
-            self, from_=0.01, to=0.2, variable=self.beta_var, number_of_steps=20,
+            self, from_=0.01, to=0.4, variable=self.beta_var, number_of_steps=40,
             command=self.update_beta
         )
         self.beta_slider.pack(fill="x", padx=10, pady=(5, 0))
