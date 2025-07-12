@@ -1,15 +1,15 @@
 {
     "mouse_controller": {
         "velocity_scale": 20.0,
-        "mincutoff": 0.6000000000000001,
-        "beta": 0.2
+        "mincutoff": 0.5,
+        "beta": 0.07
     },
     "voice_processor": {
         "selected_microphone": null,
         "commands": [
             {
                 "command": "c",
-                "action": "mouse_click"
+                "action": "key_c"
             }
         ]
     },

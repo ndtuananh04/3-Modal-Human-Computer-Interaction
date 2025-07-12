@@ -345,16 +345,15 @@ class VoiceCommandRule(CompoundRule):
         words = node.words()
         recognized_text = " ".join(words).lower()
         recognized_text = recognized_text.replace('"', '')
-
-        if not self.blendshape_processor.is_mouth_recently_open():
-            print("Voice command blocked: Mouth not open in recent 50 frames")
-            return
         
         for command in self.commands:
             if command.get("command", "").lower() == recognized_text:
                 action = command.get("action", "")
                 print(f"Command recognized: {command['command']} -> {command['action']}")
                 
+                if not self.blendshape_processor.is_mouth_recently_open():
+                    print("Voice command blocked: Mouth not open in recent 50 frames")
+                    return
                 self.execute_action(action)
                 return action
                 

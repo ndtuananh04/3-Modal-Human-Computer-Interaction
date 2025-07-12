@@ -289,6 +289,9 @@ class BlendshapeProcessor:
                 elif name in self.eye_priority:
                     candidate["priority"] = self.eye_priority.index(name)
                     eye_candidates.append(candidate)
+                elif name in self.brow_priority:
+                    candidate["priority"] = self.brow_priority.index(name)
+                    brow_candidates.append(candidate)
         
         actions_to_press = []
         
@@ -299,6 +302,10 @@ class BlendshapeProcessor:
         if eye_candidates:
             eye_candidates.sort(key=lambda x: x["priority"])
             actions_to_press.append(eye_candidates[0])
+
+        if brow_candidates:
+            brow_candidates.sort(key=lambda x: x["priority"])
+            actions_to_press.append(brow_candidates[0])
         
         for candidate in actions_to_press:
             self._execute_press_action(candidate["name"], candidate["action"])
