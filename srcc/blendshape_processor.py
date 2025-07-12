@@ -72,7 +72,7 @@ class BlendshapeProcessor:
             ]
         }
 
-        self.jaw_open_counter = 9999
+        self.jaw_open_counter = 0
         self.jaw_open_threshold = 0.1
         self.jaw_open_frame_count = 50
 
