@@ -5,23 +5,11 @@
         "beta": 0.2
     },
     "voice_processor": {
-        "selected_microphone": "Microphone Array (AMD Audio Device)",
+        "selected_microphone": null,
         "commands": [
             {
-                "command": "click",
+                "command": "c",
                 "action": "mouse_click"
-            },
-            {
-                "command": "double click",
-                "action": "mouse_double_click"
-            },
-            {
-                "command": "scroll up",
-                "action": "scroll_up"
-            },
-            {
-                "command": "scroll down",
-                "action": "scroll_down"
             }
         ]
     },
@@ -31,7 +19,7 @@
                 "blendshape": "mouthSmileLeft",
                 "action": "key_3",
                 "threshold": 0.5,
-                "mode": "press"
+                "mode": "hold"
             },
             {
                 "blendshape": "browInnerUp",
@@ -49,7 +37,7 @@
                 "blendshape": "jawOpen",
                 "action": "key_1",
                 "threshold": 0.5,
-                "mode": "hold"
+                "mode": "press"
             },
             {
                 "blendshape": "mouthFunnel",

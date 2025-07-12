@@ -72,7 +72,7 @@ class BlendshapeProcessor:
             ]
         }
 
-        self.jaw_open_history = deque(maxlen=50) 
+        self.jaw_open_counter = 9999
         self.jaw_open_threshold = 0.1
         self.jaw_open_frame_count = 50
 
@@ -188,8 +188,10 @@ class BlendshapeProcessor:
             if name == "jawOpen":
                 jaw_open_value = value
 
-        self.jaw_open_history.append(jaw_open_value)
-        
+        if jaw_open_value > self.jaw_open_threshold:
+            self.jaw_open_counter = 0
+        else:
+            self.jaw_open_counter += 1
         self._process_hold_mode(blendshape_values)
 
         action, value = self._process_press_mode(blendshape_values, current_time)
@@ -332,14 +334,9 @@ class BlendshapeProcessor:
             print(f"Error executing press action: {e}")
 
     def is_mouth_recently_open(self):
-        if not self.jaw_open_history:
+        if self.jaw_open_counter > 50:
             return False
-            
-        for jaw_value in self.jaw_open_history:
-            if jaw_value > self.jaw_open_threshold:
-                return True
-        
-        return False
+        return True
     
     def _find_binding(self, blendshape_name):
         for binding in self.bindings:

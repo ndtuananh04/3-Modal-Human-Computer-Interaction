@@ -9,6 +9,7 @@ from dragonfly.engines.backend_sapi5.engine import Sapi5InProcEngine
 
 class VoiceProcessor:
     def __init__(self, profile_manager, mouse_controller, blendshape_processor=None):
+        self.available_microphones = []
         self.stop_flag = threading.Event()
         self.profile_manager = profile_manager
         self.mouse_controller = mouse_controller
@@ -18,7 +19,7 @@ class VoiceProcessor:
         self.grammar = None
         self.commands = []
         self.selected_microphone = None
-
+        self.available_microphones = []
         self.actions = {
             "mouse": [
                 "mouse_click", 
@@ -109,7 +110,7 @@ class VoiceProcessor:
         if not self.engine:
             print("engine is not initialized")
             return
-            
+ 
         try:
             audio_sources = self.engine.get_audio_sources()
             print(f"Available audio sources: {audio_sources}")
