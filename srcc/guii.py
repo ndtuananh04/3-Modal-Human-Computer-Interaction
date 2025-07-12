@@ -1,3 +1,6 @@
+#old version of gui
+
+
 import tkinter as tk
 import customtkinter as ctk
 import cv2

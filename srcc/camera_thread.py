@@ -13,6 +13,8 @@ class CameraThread:
         self.stop_flag = Event()
         self.camera_thread = None
         self.current_frame = None
+        self.frame_width = 640
+        self.frame_height = 480
     
     def start(self):
         if not self.is_running:
@@ -25,8 +27,8 @@ class CameraThread:
     def camera_loop(self):
         try:
             self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-            # self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-            # self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.frame_width)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.frame_height)
             
             if not self.cap.isOpened():
                 print("Can't open camera!")
@@ -53,16 +55,14 @@ class CameraThread:
                         self.cap.release()
                         time.sleep(1)
                         self.cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-                        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-                        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+                        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.frame_width)
+                        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.frame_height)
                         failure_count = 0
                     
                     time.sleep(0.1)
                     continue
                 failure_count = 0
                 
-                #flip the frame horizontally
-                # frame = cv2.flip(frame, 1)
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
                 with self.lock:

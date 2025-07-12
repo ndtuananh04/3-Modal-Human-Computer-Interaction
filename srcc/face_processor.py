@@ -14,7 +14,11 @@ class FaceProcessor:
         self.lock = threading.Lock()
         self.is_initialized = False
         self.processed_frame = None
+
+        self.frame_width = 640
+        self.frame_height = 480
         self.indices = [133, 362] 
+
         self.landmark_call_back = landmark_call_back
         self.blendshape_call_back = blendshape_call_back
 
@@ -144,8 +148,8 @@ class FaceProcessor:
     def get_cursor(self):
         with self.lock:
             if self.result and self.result.face_landmarks and len(self.result.face_landmarks) > 0:
-                positions = np.array([[self.result.face_landmarks[0][idx].x * 640, self.result.face_landmarks[0][idx].y * 480] for idx in self.indices])
-                mean_position = np.mean(positions, axis=0) #640 and 480 are magic numbers, fix them later
+                positions = np.array([[self.result.face_landmarks[0][idx].x * self.frame_width, self.result.face_landmarks[0][idx].y * self.frame_height] for idx in self.indices])
+                mean_position = np.mean(positions, axis=0)
             else:
                 mean_position = []
         return mean_position
