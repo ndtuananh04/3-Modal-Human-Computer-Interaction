@@ -1,8 +1,8 @@
 {
     "mouse_controller": {
-        "velocity_scale": 20.0,
-        "mincutoff": 1.0,
-        "beta": 0.2
+        "velocity_scale": 17.0,
+        "mincutoff": 1.2000000000000002,
+        "beta": 0.20500000000000002
     },
     "voice_processor": {
         "selected_microphone": null,
@@ -16,33 +16,27 @@
     "blendshape_bindings": {
         "bindings": [
             {
-                "blendshape": "mouthSmileLeft",
-                "action": "key_3",
-                "threshold": 0.5,
+                "blendshape": "browInnerUp",
+                "action": "key_w",
+                "threshold": 0.7228,
                 "mode": "hold"
             },
             {
-                "blendshape": "browInnerUp",
-                "action": "key_up",
-                "threshold": 0.38,
-                "mode": "press"
-            },
-            {
-                "blendshape": "mouthRight",
-                "action": "key_right",
-                "threshold": 0.26,
+                "blendshape": "mouthLeft",
+                "action": "key_a",
+                "threshold": 0.2773000000000001,
                 "mode": "hold"
             },
             {
                 "blendshape": "jawOpen",
-                "action": "key_1",
-                "threshold": 0.5,
-                "mode": "press"
+                "action": "key_s",
+                "threshold": 0.3763000000000001,
+                "mode": "hold"
             },
             {
-                "blendshape": "mouthFunnel",
-                "action": "key_2",
-                "threshold": 0.5,
+                "blendshape": "mouthSmileLeft",
+                "action": "key_d",
+                "threshold": 0.2773000000000001,
                 "mode": "hold"
             }
         ],

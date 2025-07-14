@@ -14,7 +14,7 @@ class BlendshapeProcessor:
 
         self.pressed_keys = set()
         self.last_press_time = {}
-        self.press_cooldown = 0.3
+        self.press_cooldown = 1
 
         self.is_enabled = False
 
