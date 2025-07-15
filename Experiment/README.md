@@ -12,4 +12,18 @@ python -m venv ./venv
 python gui.py
 ```
 
-Good luck to understand the lines above :))
+Complete all the task and submit to get the experiment result. After that, use plot.ipynb to analyze data
+
+## Others
+
+```
+python light_testing.py
+```
+
+Run this to test mediapipe under different light conditions.
+
+```
+python face_detection_comparison.py
+```
+
+Run this to compare face detection algorithms.
