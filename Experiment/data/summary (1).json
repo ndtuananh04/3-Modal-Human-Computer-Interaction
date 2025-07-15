@@ -1,0 +1,371 @@
+{
+    "total_apps": 13,
+    "completed_apps": 13,
+    "incomplete_apps": 0,
+    "app_details": {
+        "0_survey": {
+            "task_name": "Survey",
+            "app_name": "0",
+            "responses": {
+                "mouse": {
+                    "Có tốn nhiều thời gian để thành thạo ứng dụng không": [
+                        7,
+                        5,
+                        5,
+                        1
+                    ],
+                    "Việc nhấn trái/phải chuột phản hồi có nhanh không": [
+                        3,
+                        8,
+                        8,
+                        10
+                    ],
+                    "Việc di chuột có phản hồi nhanh không": [
+                        6,
+                        7,
+                        9,
+                        10
+                    ],
+                    "Việc nhấn trái/ phải chuột có khó không": [
+                        8,
+                        3,
+                        3,
+                        1
+                    ],
+                    "Để di chuyển chuột chính xác có khó không": [
+                        8,
+                        3,
+                        2,
+                        1
+                    ],
+                    "Việc di chuột theo hướng dọc có khó không": [
+                        6,
+                        2,
+                        2,
+                        1
+                    ],
+                    "Việc di chuột theo hướng ngang có khó không": [
+                        6,
+                        2,
+                        2,
+                        1
+                    ],
+                    "Việc di chuyển chuột có gây mỏi không": [
+                        4,
+                        3,
+                        3,
+                        2
+                    ],
+                    "Bạn đánh giá có thể ứng dụng chuột này cho người khuyết tật không": [
+                        5,
+                        8,
+                        9,
+                        1
+                    ]
+                },
+                "keyboard": {
+                    "Việc ấn nút có khó không": 1,
+                    "Việc ấn nút độ trễ cao không": 1,
+                    "Việc ấn nút có dễ bị nhầm không": 1,
+                    "Liệu có thể ứng dụng việc ấn nút này hỗ trợ người khuyết tật tương tác nhanh không": 1
+                }
+            }
+        },
+        "farid_karimli_et_al_mouse_jitter": {
+            "task_name": "Mouse Jitter",
+            "app_name": "Farid Karimli et al",
+            "deviation": 35.43686166196046
+        },
+        "farid_karimli_et_al_mouse_movement": {
+            "task_name": "Mouse Movement",
+            "app_name": "Farid Karimli et al",
+            "points": [
+                {
+                    "box_index": 3,
+                    "click_type": "right",
+                    "click_count": 1,
+                    "time": 4.859601020812988,
+                    "deviation": 28.417819430620593
+                },
+                {
+                    "box_index": 8,
+                    "click_type": "left",
+                    "click_count": 1,
+                    "time": 2.975738286972046,
+                    "deviation": 31.76660245802512
+                },
+                {
+                    "box_index": 1,
+                    "click_type": "right",
+                    "click_count": 2,
+                    "time": 2.0496063232421875,
+                    "deviation": 14.143538537002698
+                },
+                {
+                    "box_index": 2,
+                    "click_type": "left",
+                    "click_count": 4,
+                    "time": 6.046507835388184,
+                    "deviation": 11.67398119122257
+                },
+                {
+                    "box_index": 6,
+                    "click_type": "left",
+                    "click_count": 2,
+                    "time": 2.0838735103607178,
+                    "deviation": 19.007231086640616
+                },
+                {
+                    "box_index": 9,
+                    "click_type": "right",
+                    "click_count": 2,
+                    "time": 5.948877573013306,
+                    "deviation": 31.90909090909091
+                },
+                {
+                    "box_index": 7,
+                    "click_type": "left",
+                    "click_count": 7,
+                    "time": 7.279362678527832,
+                    "deviation": 12.34504132231405
+                },
+                {
+                    "box_index": 4,
+                    "click_type": "left",
+                    "click_count": 5,
+                    "time": 3.9535741806030273,
+                    "deviation": 14.866666666666667
+                }
+            ],
+            "total_time": 35.19714140892029
+        },
+        "our_method_mouse_jitter": {
+            "task_name": "Mouse Jitter",
+            "app_name": "Our Method",
+            "deviation": 0
+        },
+        "our_method_mouse_movement": {
+            "task_name": "Mouse Movement",
+            "app_name": "Our Method",
+            "points": [
+                {
+                    "box_index": 3,
+                    "click_type": "right",
+                    "click_count": 1,
+                    "time": 1.015636682510376,
+                    "deviation": 10.059434324312504
+                },
+                {
+                    "box_index": 8,
+                    "click_type": "left",
+                    "click_count": 1,
+                    "time": 1.8819851875305176,
+                    "deviation": 34.15603313639597
+                },
+                {
+                    "box_index": 1,
+                    "click_type": "right",
+                    "click_count": 1,
+                    "time": 1.085540771484375,
+                    "deviation": 21.07467791015592
+                },
+                {
+                    "box_index": 2,
+                    "click_type": "left",
+                    "click_count": 1,
+                    "time": 1.0634632110595703,
+                    "deviation": 14.8
+                },
+                {
+                    "box_index": 6,
+                    "click_type": "left",
+                    "click_count": 1,
+                    "time": 1.3480265140533447,
+                    "deviation": 29.971679461981264
+                },
+                {
+                    "box_index": 9,
+                    "click_type": "right",
+                    "click_count": 1,
+                    "time": 0.9505186080932617,
+                    "deviation": 22.0
+                },
+                {
+                    "box_index": 7,
+                    "click_type": "left",
+                    "click_count": 1,
+                    "time": 1.4030311107635498,
+                    "deviation": 7.32258064516129
+                },
+                {
+                    "box_index": 4,
+                    "click_type": "left",
+                    "click_count": 1,
+                    "time": 1.0626657009124756,
+                    "deviation": 7.866666666666666
+                }
+            ],
+            "total_time": 9.81577444076538
+        },
+        "our_method_move_box": {
+            "task_name": "Move Box",
+            "app_name": "Our Method",
+            "time": 22.715254545211792,
+            "step_count": 58
+        },
+        "our_method_ping_pong": {
+            "task_name": "Ping Pong",
+            "app_name": "Our Method",
+            "total_wins": 1,
+            "total_games": 4
+        },
+        "project_gameface_-_google_mouse_jitter": {
+            "task_name": "Mouse Jitter",
+            "app_name": "Project Gameface - Google",
+            "deviation": 13.804370774314192
+        },
+        "project_gameface_-_google_mouse_movement": {
+            "task_name": "Mouse Movement",
+            "app_name": "Project Gameface - Google",
+            "points": [
+                {
+                    "box_index": 3,
+                    "click_type": "right",
+                    "click_count": 3,
+                    "time": 1.6501643657684326,
+                    "deviation": 56.75227794339121
+                },
+                {
+                    "box_index": 8,
+                    "click_type": "left",
+                    "click_count": 2,
+                    "time": 1.7566852569580078,
+                    "deviation": 17.58026672125979
+                },
+                {
+                    "box_index": 1,
+                    "click_type": "right",
+                    "click_count": 4,
+                    "time": 1.7815501689910889,
+                    "deviation": 21.408817130442852
+                },
+                {
+                    "box_index": 2,
+                    "click_type": "left",
+                    "click_count": 2,
+                    "time": 2.567866563796997,
+                    "deviation": 28.671641791044777
+                },
+                {
+                    "box_index": 6,
+                    "click_type": "left",
+                    "click_count": 1,
+                    "time": 1.463883638381958,
+                    "deviation": 29.00204530948764
+                },
+                {
+                    "box_index": 9,
+                    "click_type": "right",
+                    "click_count": 4,
+                    "time": 3.0948657989501953,
+                    "deviation": 10.785714285714286
+                },
+                {
+                    "box_index": 7,
+                    "click_type": "left",
+                    "click_count": 4,
+                    "time": 1.616640567779541,
+                    "deviation": 29.215384615384615
+                },
+                {
+                    "box_index": 4,
+                    "click_type": "left",
+                    "click_count": 6,
+                    "time": 1.2102959156036377,
+                    "deviation": 5.62962962962963
+                }
+            ],
+            "total_time": 15.155921697616577
+        },
+        "use_keyboard_move_box": {
+            "task_name": "Move Box",
+            "app_name": "Use Keyboard",
+            "time": 10.284110307693481,
+            "step_count": 56
+        },
+        "use_keyboard_ping_pong": {
+            "task_name": "Ping Pong",
+            "app_name": "Use Keyboard",
+            "total_wins": 4,
+            "total_games": 4
+        },
+        "use_mouse_mouse_jitter": {
+            "task_name": "Mouse Jitter",
+            "app_name": "Use Mouse",
+            "deviation": 0
+        },
+        "use_mouse_mouse_movement": {
+            "task_name": "Mouse Movement",
+            "app_name": "Use Mouse",
+            "points": [
+                {
+                    "box_index": 3,
+                    "click_type": "right",
+                    "click_count": 1,
+                    "time": 0.5936081409454346,
+                    "deviation": 4.984322602931016
+                },
+                {
+                    "box_index": 8,
+                    "click_type": "left",
+                    "click_count": 1,
+                    "time": 1.0157084465026855,
+                    "deviation": 9.141828439789787
+                },
+                {
+                    "box_index": 1,
+                    "click_type": "right",
+                    "click_count": 1,
+                    "time": 0.8432266712188721,
+                    "deviation": 9.256605093697232
+                },
+                {
+                    "box_index": 2,
+                    "click_type": "left",
+                    "click_count": 1,
+                    "time": 0.828249454498291,
+                    "deviation": 17.044444444444444
+                },
+                {
+                    "box_index": 6,
+                    "click_type": "left",
+                    "click_count": 1,
+                    "time": 0.6873378753662109,
+                    "deviation": 19.637686320837506
+                },
+                {
+                    "box_index": 9,
+                    "click_type": "right",
+                    "click_count": 1,
+                    "time": 0.6870677471160889,
+                    "deviation": 4.826086956521739
+                },
+                {
+                    "box_index": 7,
+                    "click_type": "left",
+                    "click_count": 1,
+                    "time": 0.9531643390655518,
+                    "deviation": 9.666666666666666
+                },
+                {
+                    "box_index": 4,
+                    "click_type": "left",
+                    "click_count": 1,
+                    "time": 0.6404745578765869,
+                    "deviation": 39.22222222222222
+                }
+            ],
+            "total_time": 6.248837232589722
+        }
+    }
+}
