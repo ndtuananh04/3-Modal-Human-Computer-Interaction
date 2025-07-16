@@ -3,7 +3,7 @@ import customtkinter as ctk
 from PIL import Image, ImageTk
 import os
 import sys
-from srcc.gui.submenu import SubmenuDropdown
+from src.gui.submenu import SubmenuDropdown
 
 class BlendshapeSettingsUI(ctk.CTkFrame):
     def __init__(self, parent, blendshape_processor, profile_manager, current_settings):

@@ -7,7 +7,7 @@ import cv2 as cv
 import threading
 
 class FaceProcessor:
-    def __init__(self, landmark_call_back = None, blendshape_call_back = None,  model_path="srcc/tasks/face_landmarker.task"):
+    def __init__(self, landmark_call_back = None, blendshape_call_back = None,  model_path="src/tasks/face_landmarker.task"):
         self.model_path = model_path
         self.model = None
         self.result = None  

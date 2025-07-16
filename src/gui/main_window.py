@@ -2,11 +2,11 @@ import tkinter as tk
 import customtkinter as ctk
 import PIL.Image, PIL.ImageTk
 import cv2
-from srcc.pipeline import Pipeline
-from srcc.gui.profile_manager_ui import ProfileManagerUI
-from srcc.gui.mouse_settings_ui import MouseSettingsUI
-from srcc.gui.voice_settings_ui import VoiceSettingsUI
-from srcc.gui.blendshape_settings_ui import BlendshapeSettingsUI
+from src.pipeline import Pipeline
+from src.gui.profile_manager_ui import ProfileManagerUI
+from src.gui.mouse_settings_ui import MouseSettingsUI
+from src.gui.voice_settings_ui import VoiceSettingsUI
+from src.gui.blendshape_settings_ui import BlendshapeSettingsUI
 
 class MainWindow(ctk.CTk):
     def __init__(self):

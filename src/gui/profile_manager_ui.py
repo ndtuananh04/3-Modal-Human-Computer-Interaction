@@ -1,6 +1,6 @@
 import tkinter as tk
 import customtkinter as ctk
-from srcc.gui.dialogs.profile_dialog import ProfileDialog
+from src.gui.dialogs.profile_dialog import ProfileDialog
 
 class ProfileManagerUI(ctk.CTkFrame):
     

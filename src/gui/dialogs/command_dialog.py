@@ -1,6 +1,6 @@
 import tkinter as tk
 import customtkinter as ctk
-from srcc.gui.submenu import SubmenuDropdown
+from src.gui.submenu import SubmenuDropdown
 
 class CommandDialog:
     def __init__(self, parent, command_index, command_text, action_text, voice_processor, profile_manager):

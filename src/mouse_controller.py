@@ -3,7 +3,7 @@ import numpy.typing as npt
 import pyautogui
 from src.accel import SigmoidAccel
 import time
-from srcc.modified_oneEuroFilter import OneEuroFilter
+from src.modified_oneEuroFilter import OneEuroFilter
 import threading
 import queue
 import math

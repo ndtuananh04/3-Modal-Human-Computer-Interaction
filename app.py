@@ -1,8 +1,7 @@
 import tkinter as tk
 import customtkinter as ctk
-from srcc.pipeline import Pipeline
-from srcc.guii import GUI
-from srcc.gui.main_window import MainWindow
+from src.pipeline import Pipeline
+from src.gui.main_window import MainWindow
 
 def main():
     pipeline = Pipeline()

@@ -1,9 +1,9 @@
-from srcc.camera_thread import CameraThread
-from srcc.face_processor import FaceProcessor
-from srcc.mouse_controller import MouseController
-from srcc.profile_manager import ProfileManager
-from srcc.voice_processor import VoiceProcessor
-from srcc.blendshape_processor import BlendshapeProcessor
+from src.camera_thread import CameraThread
+from src.face_processor import FaceProcessor
+from src.mouse_controller import MouseController
+from src.profile_manager import ProfileManager
+from src.voice_processor import VoiceProcessor
+from src.blendshape_processor import BlendshapeProcessor
 import threading
 
 class Pipeline():
