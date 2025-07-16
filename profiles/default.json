@@ -1,6 +1,6 @@
 {
     "mouse_controller": {
-        "velocity_scale": 17.0,
+        "velocity_scale": 20.0,
         "mincutoff": 1.2000000000000002,
         "beta": 0.20500000000000002
     },
@@ -16,25 +16,13 @@
     "blendshape_bindings": {
         "bindings": [
             {
-                "blendshape": "browInnerUp",
-                "action": "key_w",
-                "threshold": 0.7228,
-                "mode": "hold"
-            },
-            {
-                "blendshape": "mouthLeft",
+                "blendshape": "eyeLookUpLeft",
                 "action": "key_a",
                 "threshold": 0.2773000000000001,
                 "mode": "hold"
             },
             {
-                "blendshape": "jawOpen",
-                "action": "key_s",
-                "threshold": 0.3763000000000001,
-                "mode": "hold"
-            },
-            {
-                "blendshape": "mouthSmileLeft",
+                "blendshape": "eyeLookDownLeft",
                 "action": "key_d",
                 "threshold": 0.2773000000000001,
                 "mode": "hold"
