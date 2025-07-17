@@ -5,7 +5,7 @@ An interactive application supports individuals with mobility impairments using 
 - Mouse Control: Control your mouse cursor using head movements and facial gestures.
 - Voice to text: Using voice to enter information, instead of a keyboard.
 ## Requirements
-- Python 3.7 or higher
+- Python 3.12
 - Webcam
 - Microphone
 ## Installation
@@ -18,10 +18,10 @@ An interactive application supports individuals with mobility impairments using 
 ``` pip install -r requirements.txt ```
 ## Usage
 ### Run the application:
-``` python main.py ```
-### Follow the on-screen instructions
--First, you need to calibrate. Then you can click "Start Mouse Control" to move the mouse  
--Click: Smile  
--Voice input: Open your mouth to start recording, open again to stop
+``` python app.py ```
+### Adjust mouse parameter
+### Add preferred blendshapes bindings
+### Choose microphone device (optional)
+### Add preferred voice commands
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
