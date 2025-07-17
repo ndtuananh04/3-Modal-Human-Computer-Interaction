@@ -113,6 +113,7 @@ class MainWindow(ctk.CTk):
             self.profile_manager,
             self.mouse_controller,
             self.voice_processor,
+            self.blendshape_processor,
             self.on_profile_change
         )
         self.profile_ui.grid(row=0, column=0, sticky="new", padx=10, pady=5)

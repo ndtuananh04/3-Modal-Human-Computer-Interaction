@@ -4,12 +4,13 @@ from src.gui.dialogs.profile_dialog import ProfileDialog
 
 class ProfileManagerUI(ctk.CTkFrame):
     
-    def __init__(self, parent, profile_manager, mouse_controller, voice_processor, on_profile_change_callback):
+    def __init__(self, parent, profile_manager, mouse_controller, voice_processor, blendshape_processor, on_profile_change_callback):
         super().__init__(parent, fg_color=("#CFCFCF", "#333333"))
         
         self.profile_manager = profile_manager
         self.mouse_controller = mouse_controller
         self.voice_processor = voice_processor
+        self.blendshape_processor = blendshape_processor
         self.on_profile_change_callback = on_profile_change_callback
         
         self._create_profile_ui()
@@ -80,12 +81,20 @@ class ProfileManagerUI(ctk.CTkFrame):
         
         updated_settings = {
             "mouse_controller": {
-                "velocity_scale": self.mouse_controller.velocity_scale,
-                "mincutoff": self.mouse_controller.mincutoff,
-                "beta": self.mouse_controller.beta
+                "velocity_scale": getattr(self.mouse_controller, 'velocity_scale', 15.0),
+                "mincutoff": getattr(self.mouse_controller, 'mincutoff', 1.0),
+                "beta": getattr(self.mouse_controller, 'beta', 0.01)
             },
             "voice_processor": {
-                "selected_microphone": self.voice_processor.selected_microphone
+                "selected_microphone": getattr(self.voice_processor, 'selected_microphone', None),
+                "commands": getattr(self.voice_processor, 'commands', [])
+            },
+            "blendshape_bindings": {
+                "bindings": getattr(self.blendshape_processor, 'bindings', []),
+                "threshold": getattr(self.blendshape_processor, 'default_threshold', 0.5)
+            },
+            "face_processing": {
+                "mode": getattr(self, 'face_processing_mode', "LIVE_STREAM")
             }
         }
         
@@ -99,20 +108,22 @@ class ProfileManagerUI(ctk.CTkFrame):
         dialog = ProfileDialog(self)
         new_name = dialog.get_input()
         
-        if new_name:
-            new_settings = {
-                "mouse_controller": {
-                    "velocity_scale": self.mouse_controller.velocity_scale,
-                    "mincutoff": self.mouse_controller.mincutoff,
-                    "beta": self.mouse_controller.beta
-                }
-            }
+        try:
+            success = self.profile_manager.create_profile(new_name)
             
-            self.profile_manager.save_profile(new_name, new_settings)
-            
-            self.profiles = self.profile_manager.list_profiles()
-            self.profile_dropdown.configure(values=self.profiles)
-            self.profile_dropdown.set(new_name)
+            if success:
+                self.refresh_profile_list()
+                self.profile_dropdown.set(new_name)
+                
+                if self.on_profile_change_callback:
+                    self.on_profile_change_callback(new_name)
+                
+                print(f"Profile '{new_name}' created successfully with full default settings")
+            else:
+                print(f"Profile '{new_name}' already exists")
+                
+        except Exception as e:
+            print(f"Error creating profile '{new_name}': {e}")
     
     def delete_current_profile(self):
         current_name = self.profile_var.get()
@@ -121,10 +132,23 @@ class ProfileManagerUI(ctk.CTkFrame):
             print("Cannot delete default profile")
             return
         
-        self.profile_manager.delete_profile(current_name)
-        
+        try:
+            success = self.profile_manager.delete_profile(current_name)
+            
+            if success:
+                self.refresh_profile_list()
+                self.profile_dropdown.set("default")
+                
+                if self.on_profile_change_callback:
+                    self.on_profile_change_callback("default")
+                
+                print(f"Profile '{current_name}' deleted successfully")
+            else:
+                print(f"Failed to delete profile '{current_name}'")
+                
+        except Exception as e:
+            print(f"Error deleting profile '{current_name}': {e}")
+
+    def refresh_profile_list(self):
         self.profiles = self.profile_manager.list_profiles()
         self.profile_dropdown.configure(values=self.profiles)
-        self.profile_dropdown.set("default")
-        
-        self.on_profile_change("default")

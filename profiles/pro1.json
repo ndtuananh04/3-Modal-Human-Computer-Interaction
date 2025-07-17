@@ -1,6 +1,6 @@
 {
     "mouse_controller": {
-        "velocity_scale": 20.0,
+        "velocity_scale": 17.0,
         "mincutoff": 0.5,
         "beta": 0.07
     },
@@ -8,52 +8,27 @@
         "selected_microphone": "Microphone Array (AMD Audio Device)",
         "commands": [
             {
-                "command": "click",
-                "action": "mouse_click"
-            },
-            {
-                "command": "double click",
-                "action": "mouse_double_click"
-            },
-            {
-                "command": "scroll up",
-                "action": "scroll_up"
-            },
-            {
-                "command": "scroll down",
-                "action": "scroll_down"
-            },
-            {
-                "command": "go",
-                "action": "key_g"
+                "command": "c",
+                "action": "key_c"
             }
         ]
     },
     "blendshape_bindings": {
         "bindings": [
             {
-                "blendshape": "jawOpen",
+                "blendshape": "mouthSmileLeft",
                 "action": "mouse_click",
-                "threshold": 0.5
+                "threshold": 0.5,
+                "mode": "hold"
             },
             {
-                "blendshape": "eyeBlinkLeft",
-                "action": "key_left",
-                "threshold": 0.7
-            },
-            {
-                "blendshape": "eyeBlinkRight",
-                "action": "key_right",
-                "threshold": 0.7
+                "blendshape": "jawOpen",
+                "action": "mouse_right_click",
+                "threshold": 0.5,
+                "mode": "hold"
             }
         ],
-        "priority_order": [
-            "jawOpen",
-            "eyeBlinkLeft",
-            "eyeBlinkRight"
-        ],
-        "threshold": 0.5,
-        "cooldown": 0.001
+        "threshold": 0.5
     },
     "face_processing": {
         "mode": "LIVE_STREAM"

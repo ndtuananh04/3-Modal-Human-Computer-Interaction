@@ -13,18 +13,52 @@ class ProfileManager:
     def get_profile_path(self, profile_name: str) -> str:
         return os.path.join(self.profiles_dir, f"{profile_name}.json")
     
-    def create_default_profile(self):
-        default_settings = {
-            "name": "Default",
+    def get_default_profile_template(self) -> Dict[str, Any]:
+        return{
             "mouse_controller": {
                 "velocity_scale": 15.0,
-                "mincutoff": 0.8,
-                "beta": 0.05
+                "mincutoff": 1.5,
+                "beta": 0.1
+            },
+            "voice_processor": {
+                "selected_microphone": "Default Microphone",
+                "commands": [
+                    {
+                        "command": "c",
+                        "action": "key_c"
+                    }
+                ]
+            },
+            "blendshape_bindings": {
+                "bindings": [
+                    {
+                        "blendshape": "mouthSmileLeft",
+                        "action": "mouse_click",
+                        "threshold": 0.5,
+                        "mode": "hold"
+                    },
+                    {
+                        "blendshape": "jawOpen",
+                        "action": "mouse_right_click",
+                        "threshold": 0.5,
+                        "mode": "hold"
+                    }
+                ],
+                "threshold": 0.5
+            },
+            "face_processing": {
+                "mode": "LIVE_STREAM"
             }
         }
+
+    def create_default_profile(self):
+        default_settings = self.get_default_profile_template()
         self.save_profile("default", default_settings)
         
     def list_profiles(self) -> List[str]:
+        if not os.path.exists(self.profiles_dir):
+            return []
+        
         profiles = []
         
         for file in os.listdir(self.profiles_dir):
@@ -34,12 +68,27 @@ class ProfileManager:
         
         return profiles
     
+    def create_profile(self, profile_name: str) -> bool:
+        try:
+            if self.profile_exists(profile_name):
+                return False
+            
+            default_settings = self.get_default_profile_template()
+            
+            self.save_profile(profile_name, default_settings)
+            return True
+            
+        except Exception as e:
+            print(f"Error creating profile '{profile_name}': {e}")
+            return False
+        
     def profile_exists(self, profile_name: str) -> bool:
         return os.path.exists(self.get_profile_path(profile_name))
     
     def load_profile(self, profile_name: str) -> Dict[str, Any]:
         if not self.profile_exists(profile_name):
-            raise FileNotFoundError(f"Profile '{profile_name}' not found")
+            print(f"Profile '{profile_name}' not found, creating with defaults")
+            self.create_profile(profile_name)
         
         try:
             with open(self.get_profile_path(profile_name), 'r') as f:

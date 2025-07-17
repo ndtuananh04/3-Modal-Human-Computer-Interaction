@@ -25,9 +25,6 @@ class BlendshapeProcessor:
             "eyeLookInLeft", "eyeLookOutLeft", "eyeLookUpLeft", "eyeLookDownLeft"
             # "eyeBlinkLeft", "eyeBlinkRight"
         ]
-
-        # self.priority_order = ["mouthShrugLower", "browDownLeft", "mouthLeft", "mouthRight",
-        #                        "mouthRollLower", "mouthFunnel", "mouthSmileLeft", "jawOpen", "browInnerUp", ]
         self.mouth_priority = ["mouthShrugLower", "mouthLeft", "mouthRight", 
                                "mouthRollLower", "mouthFunnel", "mouthSmileLeft", "jawOpen"]
         self.eye_priority = ["eyeLookInLeft", "eyeLookOutLeft", "eyeLookUpLeft", "eyeLookDownLeft"]
@@ -88,16 +85,12 @@ class BlendshapeProcessor:
                 "bindings": [
                     {"blendshape": "mouthSmileLeft", "action": "mouse_click", "threshold": 0.5, "mode": "hold"}
                 ],
-                "priority_order": ["jawOpen", "eyeBlinkLeft", "eyeBlinkRight"],
-                "threshold": 0.5,
-                "cooldown": 0.01
+                "threshold": 0.5
             }
             self.update_profile(self.profile_manager)
         
         self.bindings = bs_settings.get("bindings", [])
-        self.priority_order = bs_settings.get("priority_order", [])
         self.default_threshold = bs_settings.get("threshold", 0.5)
-        self.cooldown = bs_settings.get("cooldown", 0.5)
 
     def enable(self):
         self.is_enabled = True
@@ -116,9 +109,7 @@ class BlendshapeProcessor:
                 profile_settings["blendshape_bindings"] = {}
                 
             profile_settings['blendshape_bindings']['bindings'] = self.bindings
-            profile_settings['blendshape_bindings']['priority_order'] = self.priority_order
             profile_settings['blendshape_bindings']['threshold'] = self.default_threshold
-            profile_settings['blendshape_bindings']['cooldown'] = self.cooldown
             
             self.profile_manager.save_profile(profile_name, profile_settings)
             return True
@@ -138,9 +129,7 @@ class BlendshapeProcessor:
                 profile_settings["blendshape_bindings"] = {}
                 
             profile_settings["blendshape_bindings"]["bindings"] = self.bindings
-            profile_settings["blendshape_bindings"]["priority_order"] = self.priority_order
             profile_settings["blendshape_bindings"]["threshold"] = self.default_threshold
-            profile_settings["blendshape_bindings"]["cooldown"] = self.cooldown
             
             self.profile_manager.save_profile(profile_name, profile_settings)
             print("Saved blendshape settings to profile")
@@ -162,16 +151,14 @@ class BlendshapeProcessor:
         
         action, value = self.process_blendshapes(blendshapes)
 
-        if self.active_action == "scroll_up":
-            pyautogui.scroll(20)  
-        elif self.active_action == "scroll_down":
-            pyautogui.scroll(20)
-
         return action, value
 
     def process_blendshapes(self, blendshapes):
         if not blendshapes:
-            if self.active_key:
+            if hasattr(self, 'active_categories'):
+                for category in self.active_categories:
+                    self._release_category(category)
+            elif self.active_key:
                 self._release_key()
             return None, 0
         
@@ -192,6 +179,7 @@ class BlendshapeProcessor:
             self.jaw_open_counter = 0
         else:
             self.jaw_open_counter += 1
+            
         self._process_hold_mode(blendshape_values)
 
         action, value = self._process_press_mode(blendshape_values, current_time)
@@ -204,63 +192,99 @@ class BlendshapeProcessor:
         return action, value
     
     def _process_hold_mode(self, blendshape_values):
-        if self.active_key:
-            binding = self._find_binding(self.active_key)
+        if not hasattr(self, 'active_categories'):
+            self.active_categories = {'mouth': None, 'eye': None, 'brow': None}
+        
+        self._process_category('mouth', self.mouth_priority, blendshape_values)
+        self._process_category('eye', self.eye_priority, blendshape_values)
+        self._process_category('brow', self.brow_priority, blendshape_values)
+
+    def _process_category(self, category, priority_list, blendshape_values):
+        current_active = self.active_categories[category]
+        
+        if current_active:
+            binding = self._find_binding(current_active)
             if (binding and binding.get("mode", "hold") == "hold" and
-                self.active_key in blendshape_values and
-                blendshape_values[self.active_key] >= binding.get("threshold", self.default_threshold)):
+                current_active in blendshape_values and
+                blendshape_values[current_active] >= binding.get("threshold", self.default_threshold)):
                 return  
             else:
-                self._release_key()  
+                self._release_category(category)
         
-        mouth_candidates = []
-        eye_candidates = []
-        brow_candidates = []
+        best_candidate = None
+        best_priority = float('inf')
         
-        for name, value in blendshape_values.items():
-            binding = self._find_binding(name)
-            if (binding and binding.get("mode", "hold") == "hold" and 
-                value >= binding.get("threshold", self.default_threshold)):
+        for name in priority_list:
+            if name in blendshape_values:
+                binding = self._find_binding(name)
+                if (binding and binding.get("mode", "hold") == "hold" and 
+                    blendshape_values[name] >= binding.get("threshold", self.default_threshold)):
+                    
+                    priority = priority_list.index(name)
+                    if priority < best_priority:
+                        best_priority = priority
+                        best_candidate = name
+        
+        if best_candidate and not current_active:
+            self._hold_category(category, best_candidate)
+
+    def _hold_category(self, category, blendshape_name):
+        self.active_categories[category] = blendshape_name
+        binding = self._find_binding(blendshape_name)
+        action = binding["action"]
+        
+        if category == 'mouth' and not self.active_key:
+            self.active_key = blendshape_name
+            self.active_action = action
+        
+        try:
+            if action in self.actions["mouse"]:
+                if action in ["mouse_click", "mouse_left_click"]:
+                    pyautogui.mouseDown(button="left")
+                elif action == "mouse_right_click":
+                    pyautogui.mouseDown(button="right")
+                elif action == "mouse_middle_click":
+                    pyautogui.mouseDown(button="middle")
+                    
+            elif action.startswith("key_"):
+                key = action[4:]  
+                pyautogui.keyDown(key)
                 
-                candidate = {
-                    "name": name,
-                    "value": value,
-                    "action": binding["action"],
-                    "binding": binding
-                }
+            print(f"[{category}] Key Down: {blendshape_name} -> {action}")
+        except Exception as e:
+            print(f"Error in {category}: {e}")
+            self.active_categories[category] = None
+
+    def _release_category(self, category):
+        blendshape_name = self.active_categories[category]
+        if not blendshape_name:
+            return
+            
+        binding = self._find_binding(blendshape_name)
+        action = binding["action"]
+
+        if category == 'mouth':
+            self.active_key = None
+            self.active_action = None
+        
+        try:
+            if action in self.actions["mouse"]:
+                if action in ["mouse_click", "mouse_left_click"]:
+                    pyautogui.mouseUp(button="left")
+                elif action == "mouse_right_click":
+                    pyautogui.mouseUp(button="right")
+                elif action == "mouse_middle_click":
+                    pyautogui.mouseUp(button="middle")
+                    
+            elif action.startswith("key_"):
+                key = action[4:] 
+                pyautogui.keyUp(key)
                 
-                if name in self.mouth_priority:
-                    candidate["priority"] = self.mouth_priority.index(name)
-                    mouth_candidates.append(candidate)
-                elif name in self.eye_priority:
-                    candidate["priority"] = self.eye_priority.index(name)
-                    eye_candidates.append(candidate)
-                elif name in self.brow_priority:
-                    candidate["priority"] = self.brow_priority.index(name)
-                    brow_candidates.append(candidate)
-    
-        selected_candidate = None
-        
-        if mouth_candidates:
-            mouth_candidates.sort(key=lambda x: x["priority"])
-            selected_candidate = mouth_candidates[0]
-        
-        if eye_candidates:
-            eye_candidates.sort(key=lambda x: x["priority"])
-            eye_candidate = eye_candidates[0]
-            
-            if not selected_candidate:
-                selected_candidate = eye_candidate
-            
-        if brow_candidates:
-            brow_candidates.sort(key=lambda x: x["priority"])
-            brow_candidate = brow_candidates[0]
-            
-            if not selected_candidate:
-                selected_candidate = brow_candidate
-        
-        if selected_candidate and not self.active_key:
-            self._hold_key(selected_candidate["name"], selected_candidate["action"])
+            print(f"[{category}] Key Up: {blendshape_name} -> {action}")
+        except Exception as e:
+            print(f"Error releasing {category}: {e}")
+        finally:
+            self.active_categories[category] = None
 
     def _process_press_mode(self, blendshape_values, current_time):
         mouth_candidates = []
@@ -356,11 +380,6 @@ class BlendshapeProcessor:
         if binding:
             return binding.get("threshold", self.default_threshold)
         return self.default_threshold
-    
-    def _get_priority(self, blendshape_name):
-        if blendshape_name in self.priority_order:
-            return self.priority_order.index(blendshape_name)
-        return float('inf') 
     
     def get_blendshape_value(self, blendshape_name):
         if hasattr(self, 'current_blendshapes') and self.current_blendshapes:
@@ -480,18 +499,11 @@ class BlendshapeProcessor:
         for i, binding in enumerate(self.bindings):
             if binding["blendshape"] == blendshape:
                 self.bindings.pop(i)
-                
-                if blendshape in self.priority_order:
-                    self.priority_order.remove(blendshape)
                     
                 self.save_to_profile()
                 return True
         
         return False
-    
-    def set_cooldown(self, cooldown):
-        self.cooldown = max(0.0001, min(2.0, cooldown))
-        self.save_to_profile()
 
     def set_bindings(self, bindings):
         self.bindings = bindings
