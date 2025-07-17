@@ -1,8 +1,8 @@
-# Hands-free Computer Interaction
+# 3-Modal Human-Computer Interaction
 ## Introduction
 An interactive application supports individuals with mobility impairments using computer. 
 ## Main Feature
-Multimodal Human-Computer Interation:
+Multimodal Human-Computer Interaction:
 - **Head-based Mouse Control**: Adaptive cursor positioning using facial landmarks
 - **Facial Expression Recognition**: 13 customizable expressions for actions
 - **Voice Command Detection**: Offline speech recognition with custom commands
