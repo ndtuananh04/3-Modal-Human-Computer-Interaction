@@ -1,8 +1,8 @@
 {
     "mouse_controller": {
         "velocity_scale": 17.0,
-        "mincutoff": 1.2000000000000002,
-        "beta": 0.20500000000000002
+        "mincutoff": 1.55,
+        "beta": 0.099
     },
     "voice_processor": {
         "selected_microphone": null,

@@ -9,10 +9,10 @@
             "responses": {
                 "mouse": {
                     "Có tốn nhiều thời gian để thành thạo ứng dụng không": [
-                        7,
-                        5,
-                        5,
-                        1
+                        4,
+                        6,
+                        6,
+                        10
                     ],
                     "Việc nhấn trái/phải chuột phản hồi có nhanh không": [
                         3,
@@ -27,40 +27,40 @@
                         10
                     ],
                     "Việc nhấn trái/ phải chuột có khó không": [
+                        3,
                         8,
-                        3,
-                        3,
-                        1
+                        8,
+                        10
                     ],
                     "Để di chuyển chuột chính xác có khó không": [
-                        8,
                         3,
-                        2,
-                        1
-                    ],
-                    "Việc di chuột theo hướng dọc có khó không": [
-                        6,
-                        2,
-                        2,
-                        1
-                    ],
-                    "Việc di chuột theo hướng ngang có khó không": [
-                        6,
-                        2,
-                        2,
-                        1
-                    ],
-                    "Việc di chuyển chuột có gây mỏi không": [
-                        4,
-                        3,
-                        3,
-                        2
-                    ],
-                    "Bạn đánh giá có thể ứng dụng chuột này cho người khuyết tật không": [
-                        5,
                         8,
                         9,
-                        1
+                        10
+                    ],
+                    "Việc di chuột theo hướng dọc có khó không": [
+                        5,
+                        9,
+                        9,
+                        10
+                    ],
+                    "Việc di chuột theo hướng ngang có khó không": [
+                        5,
+                        9,
+                        9,
+                        10
+                    ],
+                    "Việc di chuyển chuột có gây mỏi không": [
+                        7,
+                        8,
+                        8,
+                        9
+                    ],
+                    "Bạn đánh giá có thể ứng dụng chuột này cho người khuyết tật không": [
+                        6,
+                        3,
+                        2,
+                        10
                     ]
                 },
                 "keyboard": {
